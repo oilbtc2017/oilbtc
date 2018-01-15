@@ -126,9 +126,9 @@ public:
         // Note that of those with the service bits flag, most only support a subset of possible options
         vSeeds.emplace_back("s.oilbtc.io", false); 
 
-        //Oilcoin:Gerald,change the prefix of public address to 'o' and script address to '1'
+        //Oilcoin:Gerald,change the prefix of public address to 'o' and script address to 'A'
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,115);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,0);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,23);
 
         base58Prefixes[BTC_PUBKEY_ADDRESS] = std::vector<unsigned char>(1,0);
         base58Prefixes[BTC_SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
