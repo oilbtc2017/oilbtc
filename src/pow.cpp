@@ -16,6 +16,13 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     assert(pindexLast != nullptr);
     unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
 
+    if (pindexLast != nullptr && 
+            pindexLast->nHeight > SUPER_BLOCK_HEIGHT && 
+            pindexLast->nHeight <= LAST_POW_BLOCK_HEIGHT) { 
+        uint256 limit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        return UintToArith256(limit).GetCompact();
+    }   
+
     // Only change once per difficulty adjustment interval
     if ((pindexLast->nHeight+1) % params.DifficultyAdjustmentInterval() != 0)
     {
@@ -85,16 +92,5 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&
     if (fNegative || bnTarget == 0 || fOverflow )
         return false;
 
-    // Check proof of work matches claimed amount
-    if (UintToArith256(hash) > bnTarget){
-        std::cout<<bnTarget.ToString()<<std::endl;
-        std::cout<<UintToArith256(hash).ToString()<<std::endl;
-        return false;
-    }
-    else{
-        return true;
-    }
-        
-
-    return true;
+    return UintToArith256(hash) <= bnTarget;
 }

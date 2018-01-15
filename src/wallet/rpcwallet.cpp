@@ -3523,7 +3523,6 @@ UniValue startPosMining(const JSONRPCRequest& request){
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
-    LogPrintf("---->EnsureWalletIsAvailable success\n");
     return startPosMiningThread(pwallet);
 }
 
