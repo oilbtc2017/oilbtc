@@ -16,6 +16,7 @@ OBTC preserves and implements Bitcoin’s advantages such as SegWit. It also has
  - Per-block difficulty adjustment algorithm.
  - Replay protection (SIGHASH_FORK_ID).
  - Unique wallet addresses (prefixes of O and A).
+ - A Proof of Stake consensus system which is secure and energy efficient.
  
 
 License
