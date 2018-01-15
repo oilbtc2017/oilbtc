@@ -11,6 +11,12 @@ bitcoin back to block rewards by using POS consensus mechanism to enhance
 trading speed and equity distribution.The Oil Bitcoin(OBTC), the oil of the 
 digital currency, with a extremely high possession value.
 
+OBTC preserves and implements Bitcoin’s advantages such as SegWit. It also has remarkable characteristics:
+ - Begin as a fork of Bitcoin at block height 498888.
+ - Replay protection(SIGHASH_FORK_ID).
+ - Unique wallet addresses (prefixes of O).
+ - Base on Proof of Stake (POS) to reduce energy consumption.
+
 License
 -------
 
