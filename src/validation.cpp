@@ -1051,8 +1051,9 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const Consensus:
     //only check pow header here, pos header will be checked later in checkblock
     if(block.IsProofOfWork()){
         // Check the header
-        if (!CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
+        if (isSuperBlock(block) == false && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams)) {
             return error("ReadBlockFromDisk: Errors in block header at %s", pos.ToString());
+        }
     }
 ////
     return true;
@@ -2992,6 +2993,9 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (block.fChecked)
         return true;
 
+    if (isSuperBlock(block))
+        return true;
+
     // Check that the header is valid (particularly PoW).  This is mostly
     // redundant with the call in AcceptBlockHeader.
     if(block.IsProofOfWork() && !CheckPowBlockHeader(block, state, consensusParams, fCheckPOW)){
@@ -3502,7 +3506,7 @@ static bool UpdateHashProof(const CBlock& block, CValidationState& state, const 
         if (block.nBits != GetNextPosWorkRequired(pindex->pprev, &block, consensusParams))
             return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false, "incorrect proof of work");
     }
-    else{
+    else if (isSuperBlock(block) == false) {
         /**
          * If block is GenesisBlock when bitcoind -reindex,GetNextWorkRequired will push a exception in Assert(pindexLast != nullptr).
          * Because,GenesisBlock haven't prevBlock。So,add check if the block is GenesisBlock
@@ -3578,9 +3582,6 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
         pindexPrev = (*mi).second;
     }
 
-    // Get block height
-    int nHeight = pindex->nHeight;
-
     //set stakemodifier
     uint256 prevoutHash = *(pindex->phashBlock);
     if(block.IsProofOfStake()){
@@ -3593,10 +3594,6 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
     {
         return error("%s: AcceptBlock(): %s", __func__, state.GetRejectReason().c_str());
     }
-
-    // Check for the last proof of work block
-//    if (block.IsProofOfWork() && nHeight > chainparams.GetConsensus().nLastPOWBlock)
-//        return state.DoS(100, error("AcceptBlock() : reject proof-of-work at height %d", nHeight));
 
     // Check timestamp against prev
     if (pindexPrev && block.IsProofOfStake() && (block.GetBlockTime() <= pindexPrev->GetBlockTime() || FutureDrift(block.GetBlockTime()) < pindexPrev->GetBlockTime()))
@@ -3655,15 +3652,13 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
     if (!IsInitialBlockDownload() && chainActive.Tip() == pindex->pprev)
         GetMainSignals().NewPoWValidBlock(pindex, pblock);
 
-    //int nHeight = pindex->nHeight;
-
     // Write block to history file
     try {
         unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
         CDiskBlockPos blockPos;
         if (dbp != nullptr)
             blockPos = *dbp;
-        if (!FindBlockPos(state, blockPos, nBlockSize+8, nHeight, block.GetBlockTime(), dbp != nullptr))
+        if (!FindBlockPos(state, blockPos, nBlockSize+8, pindex->nHeight, block.GetBlockTime(), dbp != nullptr))
             return error("AcceptBlock(): FindBlockPos failed");
         if (dbp == nullptr)
             if (!WriteBlockToDisk(block, blockPos, chainparams.MessageStart()))
@@ -3691,7 +3686,6 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
         bool ret = CheckBlock(*pblock, state, chainparams.GetConsensus());
 
         LOCK(cs_main);
-
         if (ret) {
             LogPrintf("CheckBlock success\n");
             // Store to disk

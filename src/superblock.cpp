@@ -5,7 +5,7 @@
 
 #include "superblock.h"
 
-static const uint256 SUPER_BLOCK_HASH = uint256S("48a9df367d75e52e538a80c18813a7765c3d46c934576d4e48aa11ea039db171");
+static const uint256 SUPER_BLOCK_HASH = uint256S("9461df65124a330a489e791dd066f2fdd459fcee19f7c8d3dfc168f5913a08bf");
 
 bool isSuperBlock(const CBlock& block) {
     return block.GetHash() ==  SUPER_BLOCK_HASH;
