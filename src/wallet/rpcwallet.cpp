@@ -3377,7 +3377,7 @@ UniValue listblockToJSON(const CBlock& block, const CBlockIndex* blockindex, CWa
     txnouttype type;
     std::vector<CTxDestination> addresses;
     CAmount sumNet=0,sumFee=0;
-    LOCK2(cs_main, pwallet->cs_wallet);
+    //oilccoin：lf :listblocks had LOCK2(cs_main, pwallet->cs_wallet)
     for(const auto& tx : block.vtx)
     {
         txsize++;
@@ -3467,7 +3467,7 @@ UniValue listblocks(const JSONRPCRequest& request)
             + HelpExampleRpc("listblocks", "0 100")
         );
 
-    LOCK(cs_main);
+    LOCK2(cs_main, pwallet->cs_wallet);//oilcoin:lf:advisor listsinceblock LOCK2(cs_main, pwallet->cs_wallet)
     int page = request.params[0].isNull() ? 0:request.params[0].get_int();
     int nChainHeight = chainActive.Height();
     int limit = request.params[1].isNull() ? DEFAULT_LISTBLOCKS_LENGTH:(request.params[1].get_int() > MAX_LISTBLOCKS_LENGTH? MAX_LISTBLOCKS_LENGTH :request.params[1].get_int());
@@ -3521,6 +3521,8 @@ UniValue startPosMining(const JSONRPCRequest& request){
     CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
 
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        UniValue ret(UniValue::VOBJ);
+        ret.push_back(Pair("startMing", false));
         return NullUniValue;
     }
     return startPosMiningThread(pwallet);
@@ -3528,8 +3530,6 @@ UniValue startPosMining(const JSONRPCRequest& request){
 
 //Oilcoin newrpc :created by lf : stopPosMining 
 UniValue stopPosMining(const JSONRPCRequest& request){
-    UniValue ret(UniValue::VOBJ);
-    ret.push_back(Pair("stopMing", "true"));
     return stopPosMiningThread();
 }
 
