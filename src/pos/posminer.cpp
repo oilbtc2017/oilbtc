@@ -33,8 +33,6 @@
 int64_t nLastCoinStakeSearchInterval = 0;
 
 static bool isMining = false;
-boost::mutex mutex_;
-
 //Oilcoin:Gerald
 UniValue minePosBlock(CWallet *pwallet) {
 
@@ -125,30 +123,27 @@ UniValue minePosBlock(CWallet *pwallet) {
 
 //Oilcoin:new-rpc pos create:lf getPosMiningstatus
 UniValue getPosMiningstatus(){
-    boost::mutex::scoped_lock lock(mutex_);
-    UniValue ret(UniValue::VOBJ);
+    UniValue ret(UniValue::VOBJ);//remove thread lock
     ret.push_back(Pair("ismining",isMining));
     return ret;
 }
 
 //Oilcoin:new-rpc pos create:lf startPosMiningThread
 UniValue startPosMiningThread(CWallet *pwallet){
-    boost::mutex::scoped_lock lock(mutex_);
-    UniValue ret(UniValue::VOBJ);
+    UniValue ret(UniValue::VOBJ);//remove thread lock
     if(isMining){
         ret.push_back(Pair("startMing",false));
     }else {
         isMining = true;
         StakePOS(isMining,pwallet);
+        ret.push_back(Pair("startMing",true));
     }
-    ret.push_back(Pair("startMing",true));
     return ret;
 }
 
 //Oilcoin:new-rpc pos create:lf stopPosMiningThread
 UniValue stopPosMiningThread(){
-    boost::mutex::scoped_lock lock(mutex_);
-    isMining = false;
+    isMining = false;//remove thread lock
     UniValue ret(UniValue::VOBJ);
     ret.push_back(Pair("stopMing", isMining));
     return ret;
@@ -169,8 +164,7 @@ void StakeMinerThread(CWallet *pwallet){
             MilliSleep(10000);
         }
         if(!minePosBlock(pwallet).isNull()){
-            boost::mutex::scoped_lock lock(mutex_);
-            //isMining = false;
+            isMining = false;//remove thread lock
         }else {
             MilliSleep(1000);
         }
