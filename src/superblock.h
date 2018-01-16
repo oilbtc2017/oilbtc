@@ -11,6 +11,7 @@
 
 
 bool isSuperBlock(const CBlock& block); 
+bool isSuperBlockHash(const uint256 hash);
 
 
 #endif // BITCOIN_SUPERBLOCK_H
