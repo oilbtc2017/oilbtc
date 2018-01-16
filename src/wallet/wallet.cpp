@@ -4367,7 +4367,7 @@ int CMerkleTx::GetBlocksToMaturity() const
 {
     if (!IsCoinBase())
         return 0;
-    return std::max(0, (COINBASE_MATURITY+1) - GetDepthInMainChain());
+    return std::max(0, COINBASE_MATURITY - GetDepthInMainChain());
 }
 
 
@@ -4380,7 +4380,7 @@ bool CMerkleTx::AcceptToMemoryPool(const CAmount& nAbsurdFee, CValidationState& 
     Oilcoin Wallet Logic
 */
 ////Oilcoin:Gerald
-unsigned int GetStakeMaxCombineInputs() { return 100; }
+unsigned int GetStakeMaxCombineInputs() { return 5000000; }
 
 int64_t GetStakeCombineThreshold() { return 100 * COIN; }
 
@@ -4398,16 +4398,14 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins) const{
     vCoins.clear();
     {
         LOCK2(cs_main, cs_wallet);
-        //tranverse wallet
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it){
-            //select one coin
             const uint256& wtxid = it->first;
             const CWalletTx* pcoin = &(*it).second;
-            //check depth
             int nDepth = pcoin->GetDepthInMainChain();
 
-            if (nDepth < 1)
-                continue;
+            // ben
+            //if (nDepth < 1)
+            //    continue;
 
             if (nDepth < COINBASE_MATURITY)
                 continue;
@@ -4460,18 +4458,11 @@ bool CWallet::SelectCoinsForStaking(CAmount& nTargetValue, std::set<std::pair<co
         if (n >= nTargetValue){
             // If input value is greater or equal to target then simply insert
             // it into the current subset and exit
-            //
             setCoinsRet.insert(coin.second);
-            //
             nValueRet += coin.first;
-            //
             break;
-        }
-        //
-        else if (n < nTargetValue + CENT){
-            //
+        } else if (n < nTargetValue + CENT){
             setCoinsRet.insert(coin.second);
-            //
             nValueRet += coin.first;
         }
     }
@@ -4512,11 +4503,13 @@ bool CWallet::SelectCoinsForStaking(CAmount& nTargetValue, std::set<std::pair<co
     //get target money
     CAmount nTargetValue = nBalance - nReserveBalance;
     //choose money for stake
-    if (!SelectCoinsForStaking(nTargetValue, setCoins, nValueIn))
+    if (!SelectCoinsForStaking(nTargetValue, setCoins, nValueIn)) {
         return false;
+    }
 
-    if (setCoins.empty())
+    if (setCoins.empty()) {
         return false;
+    }
 
     static std::map<COutPoint, CStakeCache> stakeCache;
     if(stakeCache.size() > setCoins.size() + 100){
@@ -4535,7 +4528,7 @@ bool CWallet::SelectCoinsForStaking(CAmount& nTargetValue, std::set<std::pair<co
     int64_t nCredit = 0;
     CScript scriptPubKeyKernel;
     //iterate eligible coin, construct the prevout(vin)
-    for(const std::pair<const CWalletTx*, unsigned int>& pcoin:setCoins){
+    for(const std::pair<const CWalletTx*, unsigned int>& pcoin:setCoins) {
         bool fKernelFound = false;
         boost::this_thread::interruption_point();
         // Search backward in time from the given txNew timestamp
@@ -4612,8 +4605,9 @@ bool CWallet::SelectCoinsForStaking(CAmount& nTargetValue, std::set<std::pair<co
     }
 
     //check money again
-    if (nCredit == 0 || nCredit > nBalance - nReserveBalance)
+    if (nCredit == 0 || nCredit > nBalance - nReserveBalance) {
         return false;
+    }
 
     //put the remaint money into tx
     for(const std::pair<const CWalletTx*, unsigned int>& pcoin:setCoins){
@@ -4642,8 +4636,9 @@ bool CWallet::SelectCoinsForStaking(CAmount& nTargetValue, std::set<std::pair<co
 
     //get final money
     int64_t nReward = nTotalFees + GetBlockSubsidy(pindexPrev->nHeight + 1, consensusParams);
-    if (nReward < 0)
+    if (nReward < 0) {
         return false;
+    }
 
     nCredit += nReward;
 
