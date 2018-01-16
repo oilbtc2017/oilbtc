@@ -1748,6 +1748,7 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
     if (isSuperBlock(block)) {
         if (!fJustCheck) 
             view.SetBestBlock(pindex->GetBlockHash());
+        AddCoins(view, *(block.vtx[0]), pindex->nHeight);
         return true;
     }
 
@@ -1936,9 +1937,7 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
                              error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)",
                                    block.vtx[0]->GetValueOut(), blockReward),
                                    REJECT_INVALID, "bad-cb-amount");
-    }
-    //case pos block
-    else{
+    } else {
         if (coinstakeIn + blockReward < block.vtx[1]->GetValueOut())
             return state.DoS(100,
                              error("ConnectBlock(): coinstake pays too much (actual=%d vs vin=%d,fee=%d)",
@@ -3255,10 +3254,9 @@ bool CheckBlockSignature(const CBlock& block)
 }
 
 bool SignBlock(std::shared_ptr<CBlock> pblock, CWallet& wallet, const CAmount& nTotalFees, uint32_t nTime){
-    // if we are trying to sign
-    //    something except proof-of-stake block template
-    if (!CheckFirstCoinstakeOutput(*pblock))
+    if (!CheckFirstCoinstakeOutput(*pblock)) {
         return false;
+    }
 
     // if we are trying to sign
     //    a complete proof-of-stake block

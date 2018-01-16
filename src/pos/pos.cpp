@@ -166,6 +166,7 @@ bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, uint32_t nTimeBloc
         if(pindexPrev->nHeight + 1 - coinPrev.nHeight < COINBASE_MATURITY){
             return false;
         }
+
         CBlockIndex* blockFrom = pindexPrev->GetAncestor(coinPrev.nHeight);
         if(!blockFrom) {
             return false;

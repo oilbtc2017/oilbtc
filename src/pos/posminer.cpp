@@ -36,112 +36,88 @@ static bool isMining = false;
 boost::mutex mutex_;
 
 //Oilcoin:Gerald
-UniValue minePosBlock(CWallet *pwallet){
+UniValue minePosBlock(CWallet *pwallet) {
 
-    UniValue blockHashes(UniValue::VOBJ);
-
-    //
     if (pwallet->IsLocked()){
         return NullUniValue;
     }
-    
+
+    UniValue blockHashes(UniValue::VOBJ);
     CReserveKey reservekey(pwallet);
-    
-    //
-    // Create new block
-    //
-    if(pwallet->HaveAvailableCoinsForStaking()){
-        int64_t nTotalFees = 0;
-
-        // First just create an empty block. No need to process transactions until we know we can create a block
-        std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params())
-            .CreateEmptyBlock(reservekey.reserveScript, &nTotalFees));
-        if (!pblocktemplate.get())
-            return NullUniValue;
-
-        //get best chain's block
-        CBlockIndex* pindexPrev =  chainActive.Tip();
-
-        //get cur time. accurancy is 16s
-        uint32_t beginningTime=GetAdjustedTime();
-        beginningTime &= ~STAKE_TIMESTAMP_MASK;
-
-        //start mining
-        for(uint32_t i=beginningTime;i<beginningTime + POS_MINING_TIMES; i+=STAKE_TIMESTAMP_MASK+1) {
-        //for(uint32_t i=beginningTime;i<beginningTime + MAX_STAKE_LOOKAHEAD;i+=STAKE_TIMESTAMP_MASK+1) {
-            // The information is needed for status bar to determine if the staker is trying to create block and when it will be created approximately,
-            static int64_t nLastCoinStakeSearchTime = GetAdjustedTime(); // startup timestamp
-            // nLastCoinStakeSearchInterval > 0 mean that the staker is running
-            nLastCoinStakeSearchInterval = i - nLastCoinStakeSearchTime;
-
-            // Try to sign a block (this also checks for a PoS stake)
-            //
-            pblocktemplate->block.nTime = i;
-            std::shared_ptr<CBlock> pblock = std::make_shared<CBlock>(pblocktemplate->block);
-
-            //sign block, construct kernel hash. if failed
-            if (SignBlock(pblock, *pwallet, nTotalFees, i)) {
-                if (chainActive.Tip()->GetBlockHash() != pblock->hashPrevBlock) {
-                    //another block was received while building ours, scrap progress
-                    LogPrintf("minePosBlock: Valid future PoS block was orphaned before becoming valid");
-                    break;
-                }
-                // Create a block that's properly populated with transactions
-                //create block with tx
-                std::unique_ptr<CBlockTemplate> pblocktemplatefilled(
-                        BlockAssembler(Params()).CreateNewPosBlock(pblock->vtx[1]->vout[1].scriptPubKey, true, &nTotalFees,
-                                                                i, FutureDrift(GetAdjustedTime()) - STAKE_TIME_BUFFER));
-                if (!pblocktemplatefilled.get()){
-                    return NullUniValue;
-                }
-
-                if (chainActive.Tip()->GetBlockHash() != pblock->hashPrevBlock) {
-                    //another block was received while building ours, scrap progress
-                    LogPrintf("minePosBlock: Valid future PoS block was orphaned before becoming valid");
-                    break;
-                }
-                // Sign the full block and use the timestamp from earlier for a valid stake
-                std::shared_ptr<CBlock> pblockfilled = std::make_shared<CBlock>(pblocktemplatefilled->block);
-                //sign block with tx
-                if (SignBlock(pblockfilled, *pwallet, nTotalFees, i)) {
-                    // Should always reach here unless we spent too much time processing transactions and the timestamp is now invalid
-                    // CheckStake also does CheckBlock and AcceptBlock to propogate it to the network
-                    bool validBlock = false;
-                    while(!validBlock) {
-                        if (chainActive.Tip()->GetBlockHash() != pblockfilled->hashPrevBlock) {
-                            //another block was received while building ours, scrap progress
-                            LogPrintf("minePosBlock: Valid future PoS block was orphaned before becoming valid");
-                            break;
-                        }
-                        //check timestamps
-                        //block's time should be greater than current best chain block's time
-                        if (pblockfilled->GetBlockTime() <= pindexPrev->GetBlockTime() ||
-                            FutureDrift(pblockfilled->GetBlockTime()) < pindexPrev->GetBlockTime()) {
-                            LogPrintf("minePosBlock: Valid PoS block took too long to create and has expired");
-                            break; //timestamp too late, so ignore
-                        }
-                        //if block construct too early. waiting for the time. the new block's creating time
-                        //shouldn't greater than current + 15s
-                        if (pblockfilled->GetBlockTime() > FutureDrift(GetAdjustedTime())) {
-                            MilliSleep(3000);
-                            continue;
-                        }
-                        validBlock=true;
-                    }
-
-                    if(validBlock) {
-                        CheckStake(pblockfilled, *pwallet);
-                        // Update the search time when new valid block is created, needed for status bar icon
-                        nLastCoinStakeSearchTime = pblockfilled->GetBlockTime();
-                        blockHashes.push_back(Pair("blockhash",pblockfilled->GetHash().GetHex()));
-                    }
-                }
-                 break;
-             }// end if (SignBlock(pblock, *pwallet, nTotalFees, i))
-        }//end for(uint32_t i=beginningTime;i<beginningTime + MAX_STAKE_LOOKAHEAD;i+=STAKE_TIMESTAMP_MASK+1) 
-    }//end if(pwallet->HaveAvailableCoinsForStaking()){
-    else{
+    if(pwallet->HaveAvailableCoinsForStaking() == false ) {
         LogPrintf("wallet doesn't have available coins for staking\n");
+        return blockHashes;
+    }
+
+    int64_t nTotalFees = 0;
+    std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params())
+            .CreateEmptyBlock(reservekey.reserveScript, &nTotalFees));
+    if (!pblocktemplate.get())
+        return NullUniValue;
+
+    CBlockIndex* pindexPrev =  chainActive.Tip();
+    uint32_t beginningTime=GetAdjustedTime();
+    beginningTime &= ~STAKE_TIMESTAMP_MASK;
+
+    for(uint32_t i=beginningTime;i<beginningTime + POS_MINING_TIMES; i+=STAKE_TIMESTAMP_MASK+1) {
+        static int64_t nLastCoinStakeSearchTime = GetAdjustedTime(); // startup timestamp
+        nLastCoinStakeSearchInterval = i - nLastCoinStakeSearchTime;
+
+        pblocktemplate->block.nTime = i;
+        std::shared_ptr<CBlock> pblock = std::make_shared<CBlock>(pblocktemplate->block);
+
+        if (SignBlock(pblock, *pwallet, nTotalFees, i) == false ) {
+            continue;
+        }
+
+        if (chainActive.Tip()->GetBlockHash() != pblock->hashPrevBlock) {
+            LogPrintf("minePosBlock: Valid future PoS block was orphaned before becoming valid");
+            break;
+        }
+
+        std::unique_ptr<CBlockTemplate> pblocktemplatefilled(
+                BlockAssembler(Params()).CreateNewPosBlock(pblock->vtx[1]->vout[1].scriptPubKey, true, &nTotalFees,
+                    i, FutureDrift(GetAdjustedTime()) - STAKE_TIME_BUFFER));
+        if (!pblocktemplatefilled.get()){
+            return NullUniValue;
+        }
+
+        if (chainActive.Tip()->GetBlockHash() != pblock->hashPrevBlock) {
+            //another block was received while building ours, scrap progress
+            LogPrintf("minePosBlock: Valid future PoS block was orphaned before becoming valid");
+            break;
+        }
+
+        std::shared_ptr<CBlock> pblockfilled = std::make_shared<CBlock>(pblocktemplatefilled->block);
+        if (SignBlock(pblockfilled, *pwallet, nTotalFees, i) == false ) {
+            break;
+        }
+
+        bool validBlock = false;
+        while(!validBlock) {
+            if (chainActive.Tip()->GetBlockHash() != pblockfilled->hashPrevBlock) {
+                LogPrintf("minePosBlock: Valid future PoS block was orphaned before becoming valid");
+                break;
+            }
+
+            if (pblockfilled->GetBlockTime() <= pindexPrev->GetBlockTime() ||
+                    FutureDrift(pblockfilled->GetBlockTime()) < pindexPrev->GetBlockTime()) {
+                LogPrintf("minePosBlock: Valid PoS block took too long to create and has expired");
+                break; 
+            }
+
+            if (pblockfilled->GetBlockTime() > FutureDrift(GetAdjustedTime())) {
+                MilliSleep(3000);
+                continue;
+            }
+            validBlock = true;
+        }
+
+        if(validBlock) {
+            CheckStake(pblockfilled, *pwallet);
+            nLastCoinStakeSearchTime = pblockfilled->GetBlockTime();
+            blockHashes.push_back(Pair("blockhash",pblockfilled->GetHash().GetHex()));
+        }
     }
 
     return blockHashes;

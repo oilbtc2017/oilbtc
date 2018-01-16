@@ -17,7 +17,7 @@ static const unsigned int MAX_BLOCK_WEIGHT = 4000000;
 static const int64_t MAX_BLOCK_SIGOPS_COST = 80000;
 /** Coinbase transaction outputs can only be spent after this number of new blocks (network rule) */
 //Oilcoin:Gerald
-static const int COINBASE_MATURITY = 50;
+static const int COINBASE_MATURITY = 0;
 
 static const int SUPER_BLOCK_HEIGHT = 101;
 static const int LAST_POW_BLOCK_HEIGHT= 201;
