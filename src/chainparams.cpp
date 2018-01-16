@@ -115,7 +115,7 @@ public:
         pchMessageStart[1] = 0xbe;
         pchMessageStart[2] = 0xb4;
         pchMessageStart[3] = 0xd9;
-        nDefaultPort = 8333;
+        nDefaultPort = 8886;
         nPruneAfterHeight = 100000;
 
         genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN);
@@ -126,9 +126,9 @@ public:
         // Note that of those with the service bits flag, most only support a subset of possible options
         vSeeds.emplace_back("s.oilbtc.io", false); 
 
-        //Oilcoin:Gerald,change the prefix of public address to 'g' and script address to 'o'
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,97);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,115);
+        //Oilcoin:Gerald,change the prefix of public address to 'o' and script address to 'A'
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,115);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,23);
 
         base58Prefixes[BTC_PUBKEY_ADDRESS] = std::vector<unsigned char>(1,0);
         base58Prefixes[BTC_SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
