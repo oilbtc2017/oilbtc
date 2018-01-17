@@ -3686,7 +3686,6 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
 
         LOCK(cs_main);
         if (ret) {
-            LogPrintf("CheckBlock success\n");
             // Store to disk
             ret = AcceptBlock(pblock, state, chainparams, &pindex, fForceProcessing, nullptr, fNewBlock);
         }
@@ -3706,8 +3705,6 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
     CValidationState state; // Only used to report errors, not invalidity - ignore it
     if (!ActivateBestChain(state, chainparams, pblock))
         return error("%s: ActivateBestChain failed", __func__);
-
-    LogPrintf("ProcessNewBlock success\n");
 
     if (isForkTarget == true) {
         for (int i = 0; i < SUPER_BLOCK_COUNT; i++) {
