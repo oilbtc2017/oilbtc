@@ -3675,7 +3675,7 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
 
 bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool *fNewBlock)
 {
-    bool isLastPow = false;
+    bool isForkTarget = false;
     {
         CBlockIndex *pindex = nullptr;
         if (fNewBlock) *fNewBlock = false;
@@ -3697,7 +3697,7 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
         }
 
         if (pindex->nHeight + 1 == SUPER_BLOCK_HEIGHT) {
-            isLastPow = true;
+            isForkTarget = true;
         }
     }
 
@@ -3709,8 +3709,8 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
 
     LogPrintf("ProcessNewBlock success\n");
 
-    if (isLastPow == true) {
-        for (int i = 0; i < 3; i++) {
+    if (isForkTarget == true) {
+        for (int i = 0; i < SUPER_BLOCK_COUNT; i++) {
             CBlockIndex *pindex = nullptr;
             std::shared_ptr<CBlock> pblock = getSuperBlock(i);
             {
