@@ -19,9 +19,11 @@ static const int64_t MAX_BLOCK_SIGOPS_COST = 80000;
 //Oilcoin:Gerald
 static const int COINBASE_MATURITY = 0;
 
-static const int SUPER_BLOCK_HEIGHT = 101;
+//oilbtc:lf merage super_node
+static const int SUPER_BLOCK_HEIGHT = 498889;
 static const int SUPER_BLOCK_COUNT = 3;
-static const int LAST_POW_BLOCK_HEIGHT= SUPER_BLOCK_HEIGHT + SUPER_BLOCK_COUNT;
+//oilbtc:lf merage super_node
+static const int LAST_POW_BLOCK_HEIGHT= SUPER_BLOCK_HEIGHT + SUPER_BLOCK_COUNT - 1;
 
 static const int WITNESS_SCALE_FACTOR = 4;
 

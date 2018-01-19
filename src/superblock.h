@@ -12,6 +12,8 @@
 
 bool isSuperBlock(const CBlock& block); 
 bool isSuperBlockHash(const uint256 hash);
+//oilbtc:lf merage super_node
+std::shared_ptr<CBlock> getSuperBlock(int i); 
 
 
 #endif // BITCOIN_SUPERBLOCK_H

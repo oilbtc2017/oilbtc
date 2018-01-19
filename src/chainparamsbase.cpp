@@ -32,6 +32,7 @@ class CBaseMainParams : public CBaseChainParams
 public:
     CBaseMainParams()
     {
+        //oilbtc:lf merage super_node
         nRPCPort = 8886;
     }
 };
