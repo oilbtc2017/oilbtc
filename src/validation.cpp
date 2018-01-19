@@ -1119,6 +1119,11 @@ bool IsInitialBlockDownload()
     if (latchToFalse.load(std::memory_order_relaxed))
         return false;
 
+    //oilbtc, when get to the superblock, this node is done
+    if (chainActive.Tip() != nullptr && (chainActive.Tip()->nHeight == SUPER_BLOCK_HEIGHT + SUPER_BLOCK_COUNT - 1)) {
+        return false;
+    }
+
     LOCK(cs_main);
     if (latchToFalse.load(std::memory_order_relaxed))
         return false;
@@ -1383,6 +1388,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                         CScriptCheck check2(scriptPubKey, amount, tx, i,
                                 flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS, cacheSigStore, &txdata);
                         if (check2())
+                            //oilbtc
                             //return state.Invalid(false, REJECT_NONSTANDARD, strprintf("non-mandatory-script-verify-flag (%s)", ScriptErrorString(check.GetScriptError())));
                             return true;
                     }
@@ -1393,6 +1399,8 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                     // as to the correct behavior - we may want to continue
                     // peering with non-upgraded nodes even after soft-fork
                     // super-majority signaling has occurred.
+
+                    // oilbtc
                     //return state.DoS(100,false, REJECT_INVALID, strprintf("mandatory-script-verify-flag-failed (%s)", ScriptErrorString(check.GetScriptError())));
                     return true;
                 }
@@ -2997,6 +3005,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (block.fChecked)
         return true;
 
+    //oilbtc
     if (isSuperBlock(block))
         return true;
 
@@ -3351,6 +3360,7 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
 
 bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev)
 {
+    //oilbtc
     if (isSuperBlock(block))
         return true;
 
@@ -4168,6 +4178,7 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview,
             }
         }
         // check level 3: check for inconsistencies during memory-only disconnect of tip blocks
+        // oilbtc
         if (nCheckLevel >= 3 && pindex == pindexState && (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <= nCoinCacheUsage && (isSuperBlock(block) == false)) {
             assert(coins.GetBestBlock() == pindex->GetBlockHash());
             DisconnectResult res = DisconnectBlock(block, pindex, coins);
