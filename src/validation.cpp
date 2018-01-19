@@ -3572,6 +3572,11 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
     if (!AcceptBlockHeader(block, state, chainparams, &pindex))
         return false;
 
+    if ((pindex->nHeight + 1 > SUPER_BLOCK_HEIGHT) && 
+        isSuperBlock(*pblock) == false) {
+        return false;
+    }
+
     ////Oilcoin:Gerald
     // Get prev block index
     CBlockIndex* pindexPrev = nullptr;
