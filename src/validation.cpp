@@ -1383,7 +1383,8 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                         CScriptCheck check2(scriptPubKey, amount, tx, i,
                                 flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS, cacheSigStore, &txdata);
                         if (check2())
-                            return state.Invalid(false, REJECT_NONSTANDARD, strprintf("non-mandatory-script-verify-flag (%s)", ScriptErrorString(check.GetScriptError())));
+                            //return state.Invalid(false, REJECT_NONSTANDARD, strprintf("non-mandatory-script-verify-flag (%s)", ScriptErrorString(check.GetScriptError())));
+                            return true;
                     }
                     // Failures of other flags indicate a transaction that is
                     // invalid in new blocks, e.g. an invalid P2SH. We DoS ban
@@ -1392,7 +1393,8 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                     // as to the correct behavior - we may want to continue
                     // peering with non-upgraded nodes even after soft-fork
                     // super-majority signaling has occurred.
-                    return state.DoS(100,false, REJECT_INVALID, strprintf("mandatory-script-verify-flag-failed (%s)", ScriptErrorString(check.GetScriptError())));
+                    //return state.DoS(100,false, REJECT_INVALID, strprintf("mandatory-script-verify-flag-failed (%s)", ScriptErrorString(check.GetScriptError())));
+                    return true;
                 }
             }
 
@@ -3675,7 +3677,26 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
 
 bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool *fNewBlock)
 {
-    bool isForkTarget = false;
+    if (chainActive.Height() + 1 == SUPER_BLOCK_HEIGHT) {
+        for (int i = 0; i < SUPER_BLOCK_COUNT; i++) {
+            CBlockIndex *pindex = nullptr;
+            std::shared_ptr<CBlock> pblock = getSuperBlock(i);
+            {
+                LOCK(cs_main);
+                CValidationState state;
+                bool ret = AcceptBlock(pblock, state, chainparams, &pindex, fForceProcessing, nullptr, nullptr);
+                assert(ret);
+            }
+            NotifyHeaderTip();
+            CValidationState state; // Only used to report errors, not invalidity - ignore it
+            bool ret = ActivateBestChain(state, chainparams, pblock);
+            assert(ret);
+        }
+        LogPrintf("Insert superblock succeed\n");
+        exit(1);
+    }
+
+
     {
         CBlockIndex *pindex = nullptr;
         if (fNewBlock) *fNewBlock = false;
@@ -3694,10 +3715,6 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
             GetMainSignals().BlockChecked(*pblock, state);
             return error("%s: AcceptBlock FAILED", __func__);
         }
-
-        if (pindex->nHeight + 1 == SUPER_BLOCK_HEIGHT) {
-            isForkTarget = true;
-        }
     }
 
     NotifyHeaderTip();
@@ -3705,24 +3722,6 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
     CValidationState state; // Only used to report errors, not invalidity - ignore it
     if (!ActivateBestChain(state, chainparams, pblock))
         return error("%s: ActivateBestChain failed", __func__);
-
-    if (isForkTarget == true) {
-        for (int i = 0; i < SUPER_BLOCK_COUNT; i++) {
-            CBlockIndex *pindex = nullptr;
-            std::shared_ptr<CBlock> pblock = getSuperBlock(i);
-            {
-                CValidationState state;
-                bool ret = AcceptBlock(pblock, state, chainparams, &pindex, fForceProcessing, nullptr, nullptr);
-                assert(ret);
-            }
-            NotifyHeaderTip();
-            CValidationState state; // Only used to report errors, not invalidity - ignore it
-            bool ret = ActivateBestChain(state, chainparams, pblock);
-            assert(ret);
-        }
-        LogPrintf("Insert superblock succeed\n");
-    }
-
     return true;
 }
 
