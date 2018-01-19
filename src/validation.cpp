@@ -1956,6 +1956,7 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
     }
     ////
 
+    //oilbtc
     if (!control.Wait()) {
         LogPrintf("script check error\n");
         //return state.DoS(100, error("%s: CheckQueue failed", __func__), REJECT_INVALID, "block-validation-failed");
@@ -3588,6 +3589,7 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
     if (!AcceptBlockHeader(block, state, chainparams, &pindex))
         return false;
 
+    //oilbtc
     if ((pindex->nHeight + 1 > SUPER_BLOCK_HEIGHT) && 
         isSuperBlock(*pblock) == false) {
         return false;
