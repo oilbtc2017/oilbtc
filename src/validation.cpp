@@ -3561,6 +3561,13 @@ bool ProcessNewBlockHeaders(const std::vector<CBlockHeader>& headers, CValidatio
     {
         LOCK(cs_main);
         for (const CBlockHeader& header : headers) {
+            //MYC
+            if((pindexBestHeader!=nullptr)&&(pindexBestHeader->nHeight >= (SUPER_BLOCK_HEIGHT - 1))){
+                if (ppindex) {
+                    *ppindex = pindexBestHeader;
+                }
+                break;
+            }
             CBlockIndex *pindex = nullptr; // Use a temp pindex instead of ppindex to avoid a const_cast
             if (!AcceptBlockHeader(header, state, chainparams, &pindex)) {
                 if (first_invalid) *first_invalid = header;
@@ -3700,25 +3707,27 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
 
 bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool *fNewBlock)
 {
-    if (chainActive.Height() + 1 == SUPER_BLOCK_HEIGHT) {
-        for (int i = 0; i < SUPER_BLOCK_COUNT; i++) {
-            CBlockIndex *pindex = nullptr;
-            std::shared_ptr<CBlock> pblock = getSuperBlock(i);
-            {
-                LOCK(cs_main);
-                CValidationState state;
-                bool ret = AcceptBlock(pblock, state, chainparams, &pindex, fForceProcessing, nullptr, nullptr);
-                assert(ret);
-            }
-            NotifyHeaderTip();
-            CValidationState state; // Only used to report errors, not invalidity - ignore it
-            bool ret = ActivateBestChain(state, chainparams, pblock);
-            assert(ret);
-        }
-        LogPrintf("Insert superblock succeed\n");
-    }
-
-
+//    if (chainActive.Height() + 1 == SUPER_BLOCK_HEIGHT) {
+//        for (int i = 0; i < SUPER_BLOCK_COUNT; i++) {
+//            CBlockIndex *pindex = nullptr;
+//            std::shared_ptr<CBlock> pblock = getSuperBlock(i);
+//            {
+//                LOCK(cs_main);
+//                CValidationState state;
+//                bool ret = AcceptBlock(pblock, state, chainparams, &pindex, fForceProcessing, nullptr, nullptr);
+//                assert(ret);
+//            }
+//            NotifyHeaderTip();
+//            CValidationState state; // Only used to report errors, not invalidity - ignore it
+//            bool ret = ActivateBestChain(state, chainparams, pblock);
+//            assert(ret);
+//        }
+//        LogPrintf("Insert superblock succeed\n");
+//    }
+    //MYC
+    if(chainActive.Height() == (SUPER_BLOCK_HEIGHT - 1))
+        return false;
+    
     {
         CBlockIndex *pindex = nullptr;
         if (fNewBlock) *fNewBlock = false;
@@ -4034,6 +4043,7 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams)
             pindex->BuildSkip();
         if (pindex->IsValid(BLOCK_VALID_TREE) && (pindexBestHeader == nullptr || CBlockIndexWorkComparator()(pindexBestHeader, pindex)))
             pindexBestHeader = pindex;
+        //LogPrintf("----hash:%s---->height:%s---\n",pindex->GetBlockHash().ToString(),pindex->nHeight);
     }
 
     // Load block file info
