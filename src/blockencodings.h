@@ -74,9 +74,14 @@ public:
     uint256 blockhash;
     std::vector<CTransactionRef> txn;
 
+    //Oilcoin:BlockTXN_sign
+    std::vector<unsigned char> vchBlockSig;
+
     BlockTransactions() {}
     BlockTransactions(const BlockTransactionsRequest& req) :
-        blockhash(req.blockhash), txn(req.indexes.size()) {}
+        blockhash(req.blockhash), txn(req.indexes.size()) {
+            vchBlockSig.clear();
+        }
 
     ADD_SERIALIZE_METHODS;
 
@@ -96,6 +101,7 @@ public:
             for (size_t i = 0; i < txn.size(); i++)
                 READWRITE(REF(TransactionCompressor(txn[i])));
         }
+        READWRITE(vchBlockSig);
     }
 };
 

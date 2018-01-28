@@ -24,7 +24,7 @@ using namespace std;
 // must hash with a future stake modifier to generate the proof.
 uint256 ComputeStakeModifier(const CBlockIndex* pindexPrev, const uint256& kernel)
 {
-    if (!pindexPrev)
+    if (!pindexPrev || pindexPrev->nHeight == SUPER_BLOCK_HEIGHT)
         return uint256();  // genesis block's modifier is 0
 
     CDataStream ss(SER_GETHASH, 0);
@@ -64,9 +64,7 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, uint32_t 
     int64_t nValueIn = prevoutValue;
     arith_uint256 bnWeight = arith_uint256(nValueIn);
     bnTarget *= bnWeight;
-
     targetProofOfStake = ArithToUint256(bnTarget);
-
     uint256 nStakeModifier = pindexPrev->nStakeModifier;
 
     // Calculate hash
@@ -75,28 +73,22 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, uint32_t 
     ss << blockFromTime << prevout.hash << prevout.n << nTimeBlock;
     hashProofOfStake = Hash(ss.begin(), ss.end());
 
-    if (fPrintProofOfStake)
-    {
-        LogPrintf("CheckStakeKernelHash() : check modifier=%s nTimeBlockFrom=%u nPrevout=%u nTimeBlock=%u hashProof=%s\n",
-            nStakeModifier.GetHex().c_str(),
-            blockFromTime, prevout.n, nTimeBlock,
-            hashProofOfStake.ToString());
-    }
-
+    bool checkSucceed = true;
     // Now check if proof-of-stake hash meets target protocol
     if (UintToArith256(hashProofOfStake) > bnTarget){
-        return false;
-    }
+        checkSucceed = false;
+    } 
 
-    if (fDebug && !fPrintProofOfStake)
-    {
-        LogPrintf("CheckStakeKernelHash() : check modifier=%s nTimeBlockFrom=%u nPrevout=%u nTimeBlock=%u hashProof=%s\n",
-            nStakeModifier.GetHex().c_str(),
-            blockFromTime, prevout.n, nTimeBlock,
-            hashProofOfStake.ToString());
-    }
+    LogPrintf("%s:CheckStakeKernelHash() nBits=%d weight=%s modifier=%s nTimeBlockFrom=%u nPrevout=%s nTimeBlock=%u hashProof=%s prev=%s\n",
+            checkSucceed ? "succeed" : "failed",
+            nBits,
+            bnWeight.ToString(),
+            nStakeModifier.ToString(),
+            blockFromTime, prevout.ToString(), nTimeBlock,
+            hashProofOfStake.ToString(),
+            pindexPrev->ToString());
 
-    return true;
+    return checkSucceed;
 }
 
 // Check kernel hash target and coinstake signature
