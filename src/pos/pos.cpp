@@ -64,9 +64,7 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, uint32_t 
     int64_t nValueIn = prevoutValue;
     arith_uint256 bnWeight = arith_uint256(nValueIn);
     bnTarget *= bnWeight;
-
     targetProofOfStake = ArithToUint256(bnTarget);
-
     uint256 nStakeModifier = pindexPrev->nStakeModifier;
 
     // Calculate hash
@@ -76,13 +74,23 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, uint32_t 
     hashProofOfStake = Hash(ss.begin(), ss.end());
     // Now check if proof-of-stake hash meets target protocol
     if (UintToArith256(hashProofOfStake) > bnTarget){
-        LogPrintf("EORROR:CheckStakeKernelHash() modifier=%s nTimeBlockFrom=%u nPrevout=%u nTimeBlock=%u hashProof=%s\n",
-            nStakeModifier.GetHex().c_str(),
-            blockFromTime, prevout.n, nTimeBlock,
+        LogPrintf("failed:CheckStakeKernelHash() nBits=%d weight=%s modifier=%s nTimeBlockFrom=%u nPrevout=%s nTimeBlock=%u hashProof=%s\n",
+            nBits,
+            bnWeight.ToString(),
+            nStakeModifier.ToString(),
+            blockFromTime, prevout.ToString(), nTimeBlock,
             hashProofOfStake.ToString());
         return false;
+    } else {
+        LogPrintf("succeed:CheckStakeKernelHash() nBits=%d weight=%s modifier=%s nTimeBlockFrom=%u nPrevout=%s nTimeBlock=%u hashProof=%s\n",
+            nBits,
+            bnWeight.ToString(),
+            nStakeModifier.ToString(),
+            blockFromTime, prevout.ToString(), nTimeBlock,
+            hashProofOfStake.ToString());
+
+        return true;
     }
-    return true;
 }
 
 // Check kernel hash target and coinstake signature
