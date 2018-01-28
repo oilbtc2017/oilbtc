@@ -115,6 +115,7 @@ UniValue minePosBlock(CWallet *pwallet) {
             CheckStake(pblockfilled, *pwallet);
             nLastCoinStakeSearchTime = pblockfilled->GetBlockTime();
             blockHashes.push_back(Pair("blockhash",pblockfilled->GetHash().GetHex()));
+            break;
         }
     }
 

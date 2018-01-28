@@ -3283,7 +3283,8 @@ bool SignBlock(std::shared_ptr<CBlock> pblock, CWallet& wallet, const CAmount& n
     //int64_t nSearchInterval = IsProtocolV2(nBestHeight+1) ? 1 : nSearchTime - nLastCoinStakeSearchTime;
     //IsProtocolV2 mean POS 2 or higher, so the modified line is:
     if (wallet.CreateCoinStake(wallet, pblock->nBits, nTotalFees, nTimeBlock, txCoinStake, key)){
-        if (nTimeBlock >= pindexBestHeader->GetMedianTimePast()+1){
+        if (nTimeBlock >= chainActive.Tip()->GetMedianTimePast()+1){
+        //if (nTimeBlock >= pindexBestHeader->GetMedianTimePast()+1){
             // make sure coinstake would meet timestamp protocol
             //    as it would be the same as the block timestamp
             pblock->nTime = nTimeBlock;
@@ -3291,7 +3292,8 @@ bool SignBlock(std::shared_ptr<CBlock> pblock, CWallet& wallet, const CAmount& n
             pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
 
             // Check timestamp against prev
-            if(pblock->GetBlockTime() <= pindexBestHeader->GetBlockTime() || FutureDrift(pblock->GetBlockTime()) < pindexBestHeader->GetBlockTime())
+            //if(pblock->GetBlockTime() <= pindexBestHeader->GetBlockTime() || FutureDrift(pblock->GetBlockTime()) < pindexBestHeader->GetBlockTime())
+            if(pblock->GetBlockTime() <= chainActive.Tip()->GetBlockTime() || FutureDrift(pblock->GetBlockTime()) < chainActive.Tip()->GetBlockTime())
             {
                 return false;
             }
