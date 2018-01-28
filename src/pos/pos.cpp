@@ -24,7 +24,7 @@ using namespace std;
 // must hash with a future stake modifier to generate the proof.
 uint256 ComputeStakeModifier(const CBlockIndex* pindexPrev, const uint256& kernel)
 {
-    if (!pindexPrev)
+    if (!pindexPrev || pindexPrev->nHeight == LAST_POW_BLOCK_HEIGHT)
         return uint256();  // genesis block's modifier is 0
 
     CDataStream ss(SER_GETHASH, 0);
