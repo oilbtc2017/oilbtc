@@ -4472,7 +4472,8 @@ bool CWallet::SelectCoinsForStaking(CAmount& nTargetValue, std::set<std::pair<co
 
 //construct a coinstake tx based on tx
  bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, const CAmount& nTotalFees, uint32_t nTimeBlock, CMutableTransaction& tx, CKey& key){
-    CBlockIndex* pindexPrev = pindexBestHeader;
+    //CBlockIndex* pindexPrev = pindexBestHeader;
+     CBlockIndex* pindexPrev = chainActive.Tip();
     arith_uint256 bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
 
