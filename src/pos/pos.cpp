@@ -24,11 +24,22 @@ using namespace std;
 // must hash with a future stake modifier to generate the proof.
 uint256 ComputeStakeModifier(const CBlockIndex* pindexPrev, const uint256& kernel)
 {
-    if (!pindexPrev || pindexPrev->nHeight == SUPER_BLOCK_HEIGHT)
-        return uint256();  // genesis block's modifier is 0
+//    if (!pindexPrev || pindexPrev->nHeight == SUPER_BLOCK_HEIGHT)
+//        return uint256();  // genesis block's modifier is 0
+
+    int32_t nStakeModifier = 0;
+    if(pindexPrev->nHeight > LAST_POW_BLOCK_HEIGHT){
+        nStakeModifier = pindexPrev->nNonce;
+    }
+
+    if((nStakeModifier == 0)&& (pindexPrev->nHeight>LAST_POW_BLOCK_HEIGHT)){
+        LogPrintf("---------------prev stake modifider is null\n");
+        assert(false);
+    }
 
     CDataStream ss(SER_GETHASH, 0);
-    ss << kernel << pindexPrev->nStakeModifier;
+    ss << kernel << nStakeModifier;
+
     return Hash(ss.begin(), ss.end());
 }
 
@@ -65,7 +76,11 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, uint32_t 
     arith_uint256 bnWeight = arith_uint256(nValueIn);
     bnTarget *= bnWeight;
     targetProofOfStake = ArithToUint256(bnTarget);
-    uint256 nStakeModifier = pindexPrev->nStakeModifier;
+    //uint256 nStakeModifier = pindexPrev->nStakeModifier;
+    int32_t nStakeModifier = 0;
+    if(pindexPrev->nHeight > LAST_POW_BLOCK_HEIGHT){
+        nStakeModifier = pindexPrev->nNonce;
+    }
 
     // Calculate hash
     CDataStream ss(SER_GETHASH, 0);
@@ -79,11 +94,11 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, uint32_t 
         checkSucceed = false;
     } 
 
-    LogPrintf("%s:CheckStakeKernelHash() nBits=%d weight=%s modifier=%s nTimeBlockFrom=%u nPrevout=%s nTimeBlock=%u hashProof=%s prev=%s\n",
+    LogPrintf("%s:CheckStakeKernelHash() nBits=%d weight=%s modifier=%d nTimeBlockFrom=%u nPrevout=%s nTimeBlock=%u hashProof=%s prev=%s\n",
             checkSucceed ? "succeed" : "failed",
             nBits,
             bnWeight.ToString(),
-            nStakeModifier.ToString(),
+            nStakeModifier,
             blockFromTime, prevout.ToString(), nTimeBlock,
             hashProofOfStake.ToString(),
             pindexPrev->ToString());

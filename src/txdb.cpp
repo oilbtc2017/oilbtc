@@ -288,7 +288,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
                 pindexNew->nTx            = diskindex.nTx;
 
                 //Oilcoin:Gerald
-                pindexNew->nStakeModifier = diskindex.nStakeModifier;
+                //pindexNew->nStakeModifier = diskindex.nStakeModifier;
                 pindexNew->prevoutStake   = diskindex.prevoutStake;
                 pindexNew->hashProof    = diskindex.hashProof; // qtum
 

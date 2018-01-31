@@ -223,7 +223,7 @@ public:
 
     ////Oilcoin:Gerald
     //stake modifier
-    uint256 nStakeModifier;
+    //uint256 nStakeModifier;
     //kenel hash
     uint256 hashProof;
     //prevout transaction
@@ -253,7 +253,7 @@ public:
         nNonce         = 0;
 
 ////Oilcoin:Gerald
-        nStakeModifier = uint256();
+        //nStakeModifier = uint256();
         hashProof = uint256();
         prevoutStake.SetNull();
 ////
@@ -275,7 +275,7 @@ public:
         nNonce         = block.nNonce;
 
         ////Oilcoin:Gerald
-        nStakeModifier = uint256();
+        //nStakeModifier = uint256();
         hashProof = uint256(); 
         prevoutStake.SetNull();
         ////
@@ -357,11 +357,11 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s, nStakeModifier=%s)",
+        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s, nStakeModifier=%d)",
             pprev, nHeight,
             hashMerkleRoot.ToString(),
             GetBlockHash().ToString(),
-            nStakeModifier.ToString());
+            nNonce);
     }
 
     //! Check whether this block index entry is valid up to the passed validity level.
@@ -443,7 +443,7 @@ public:
         READWRITE(nNonce);
 
         ///Oilcoin:Gerald
-        READWRITE(nStakeModifier);
+        //READWRITE(nStakeModifier);
         READWRITE(hashProof);
         READWRITE(prevoutStake);
         ////

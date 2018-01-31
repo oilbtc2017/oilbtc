@@ -3291,6 +3291,14 @@ bool SignBlock(std::shared_ptr<CBlock> pblock, CWallet& wallet, const CAmount& n
             pblock->vtx[1] = MakeTransactionRef(std::move(txCoinStake));
             pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
 
+            //compute stake modifider
+            CBlockIndex* pindexPrev = chainActive.Tip();
+            uint256 prevoutHash = pblock->vtx[1]->vin[0].prevout.hash;
+            uint256 nStakeModifier = ComputeStakeModifier(pindexPrev, prevoutHash);
+
+            pblock->nNonce = UintToArith256(nStakeModifier).GetCompact();
+            //end compute stake modifider
+
             // Check timestamp against prev
             //if(pblock->GetBlockTime() <= pindexBestHeader->GetBlockTime() || FutureDrift(pblock->GetBlockTime()) < pindexBestHeader->GetBlockTime())
             if(pblock->GetBlockTime() <= chainActive.Tip()->GetBlockTime() || FutureDrift(pblock->GetBlockTime()) < chainActive.Tip()->GetBlockTime())
@@ -3598,13 +3606,16 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
         pindexPrev = (*mi).second;
     }
 
-    //set stakemodifier
-    uint256 prevoutHash = *(pindex->phashBlock);
+    //validate stakemodifier
     if(block.IsProofOfStake()){
-        prevoutHash = block.vtx[1]->vin[0].prevout.hash;
+        uint256 prevoutHash = block.vtx[1]->vin[0].prevout.hash;
         pindex->prevoutStake = block.vtx[1]->vin[0].prevout;
+        uint256 nStakeModifier = ComputeStakeModifier(pindexPrev, prevoutHash);
+        if(pindex->nNonce != UintToArith256(nStakeModifier).GetCompact()){
+            return error("AcceptBlock() : stake modifider doesn't match");
+        }
     }
-    pindex->nStakeModifier = ComputeStakeModifier(pindexPrev, prevoutHash);
+
 
     if (!UpdateHashProof(block, state, chainparams.GetConsensus(), pindex, *pcoinsTip))
     {
