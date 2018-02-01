@@ -10,12 +10,9 @@
 #include "version.h"
 
 //oilbtc:lf merage super_node
-//static const uint256 SUPER_BLOCK_HASH1 = uint256S("1d7119dc891c5cf48f1be3b9d484690d8ad04c5798a6936d64196702e6ff883e");
-//static const uint256 SUPER_BLOCK_HASH2 = uint256S("b9f47c8fbea6efe96b4d65828cd2c93754f26366199638a7bfad63f61234b6d0");
-//static const uint256 SUPER_BLOCK_HASH3 = uint256S("4c50599de0a18b69a84ab1339153c6afac15e733dc197c6bbba071b864d6a7f7");
-static const uint256 SUPER_BLOCK_HASH1 = uint256S("a538753e8e81ef8a9f2be4f553ce61a2d7d30e4f8807db4743540da07bcd1080");
-static const uint256 SUPER_BLOCK_HASH2 = uint256S("5826695fba4e11758a44a10598af716b83dafb529c20bf1d91df639f894932eb");
-static const uint256 SUPER_BLOCK_HASH3 = uint256S("67a808a392bf285993efcf3d5c63207f0430a85fceff86cbda8ccb7d424083bb");
+static const uint256 SUPER_BLOCK_HASH1 = uint256S("1d7119dc891c5cf48f1be3b9d484690d8ad04c5798a6936d64196702e6ff883e");
+static const uint256 SUPER_BLOCK_HASH2 = uint256S("b9f47c8fbea6efe96b4d65828cd2c93754f26366199638a7bfad63f61234b6d0");
+static const uint256 SUPER_BLOCK_HASH3 = uint256S("4c50599de0a18b69a84ab1339153c6afac15e733dc197c6bbba071b864d6a7f7");
 
 bool isSuperBlock(const CBlock& block) {
     return isSuperBlockHash(block.GetHash());

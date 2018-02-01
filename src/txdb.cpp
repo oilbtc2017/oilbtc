@@ -288,13 +288,10 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
                 pindexNew->nTx            = diskindex.nTx;
 
                 //Oilcoin:Gerald
-                //pindexNew->nStakeModifier = diskindex.nStakeModifier;
+                pindexNew->nStakeModifier = diskindex.nStakeModifier;
                 pindexNew->prevoutStake   = diskindex.prevoutStake;
                 pindexNew->hashProof    = diskindex.hashProof; // qtum
 
-//                if(!pindexNew->prevoutStake.IsNull()){
-//                    std::cout<<pindexNew->nHeight<<" has prevout stake, should be pos block"<<std::endl;
-//                }
 
                 if(pindexNew->nHeight <= consensusParams.nLastPOWBlock){
                     if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, consensusParams))
