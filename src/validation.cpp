@@ -4043,7 +4043,7 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams)
             pindex->BuildSkip();
         if (pindex->IsValid(BLOCK_VALID_TREE) && (pindexBestHeader == nullptr || CBlockIndexWorkComparator()(pindexBestHeader, pindex))){
             pindexBestHeader = pindex;
-            assert(pindexBestHeader->nHeight <= (SUPER_BLOCK_HEIGHT - 1));
+            //assert(pindexBestHeader->nHeight <= (SUPER_BLOCK_HEIGHT - 1));
         }
         LogPrintf("----hash:%s---->height:%s---\n",pindex->GetBlockHash().ToString(),pindex->nHeight);
     }
