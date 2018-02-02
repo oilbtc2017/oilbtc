@@ -30,7 +30,8 @@ uint256 ComputeStakeModifier(const CBlockIndex* pindexPrev, const uint256& kerne
     }
 
     if((nStakeModifier == 0)&& (pindexPrev->nHeight>LAST_POW_BLOCK_HEIGHT)){
-        LogPrintf("---------------prev stake modifider is null\n");
+        LogPrintf("---------------prev stake modifider is null, pindexPrev:height:%d, hash:%s,nStakeModifier:%d\n",
+                  pindexPrev->nHeight,pindexPrev->GetBlockHash().GetHex(), nStakeModifier);
         assert(false);
     }
 

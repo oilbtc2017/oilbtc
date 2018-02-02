@@ -3484,6 +3484,7 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
         if (!ContextualCheckBlockHeader(block, state, chainparams, pindexPrev, GetAdjustedTime()))
             return error("%s: Consensus::ContextualCheckBlockHeader: %s, %s", __func__, hash.ToString(), FormatStateMessage(state));
 
+
         if (!pindexPrev->IsValid(BLOCK_VALID_SCRIPTS)) {
             for (const CBlockIndex* failedit : g_failed_blocks) {
                 if (pindexPrev->GetAncestor(failedit->nHeight) == failedit) {
@@ -3498,6 +3499,14 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
                 }
             }
         }
+
+        //oilbtc
+        if((pindexPrev->nHeight >= LAST_POW_BLOCK_HEIGHT)&&block.nNonce == 0){
+            return state.DoS(10, error("pos block nNonce is zero, hash:%s, prevHeight:%d, prevHash:%s",
+                                       block.GetHash().GetHex(),pindexPrev->nHeight, pindexPrev->GetBlockHash().GetHex()),
+                             REJECT_INVALID, "bad-pos-block-nNonce");
+        }
+        //
     }
     if (pindex == nullptr)
         pindex = AddToBlockIndex(block);
