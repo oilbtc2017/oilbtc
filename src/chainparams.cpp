@@ -125,7 +125,7 @@ public:
         assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
 
         // Note that of those with the service bits flag, most only support a subset of possible options
-        vSeeds.emplace_back("s.oilbtc.io", false); 
+        vSeeds.emplace_back("s.oilbtc.io", false);
 
         //Oilcoin:Gerald,change the prefix of public address to 'o' and script address to 'A'
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,115);
