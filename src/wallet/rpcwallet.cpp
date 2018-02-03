@@ -3601,13 +3601,13 @@ static const CRPCCommand commands[] =
     //Oilcoin newrpc
     { "wallet",             "listblocks",               &listblocks,               true,  {"page","length"} },
 
-    { "generating",         "generate",                 &generate,                 true,   {"nblocks","maxtries"} },
+    //{ "generating",         "generate",                 &generate,                 true,   {"nblocks","maxtries"} },
     //Oilcoin:Gerald,add pos mining rpc call
-    { "generating",         "generatepos",              &generatepos,              true,   {} },
+    //{ "generating",         "generatepos",              &generatepos,              true,   {} },
      //Oilcoin:lf,add pos mining rpc call
-    { "generating",         "getPosMiningInfo",         &getPosMiningInfo,         true,   {} },
-    { "generating",         "startPosMining",           &startPosMining,           true,   {} },
-    { "generating",         "stopPosMining",            &stopPosMining,            true,   {} },
+    //{ "generating",         "getPosMiningInfo",         &getPosMiningInfo,         true,   {} },
+    //{ "generating",         "startPosMining",           &startPosMining,           true,   {} },
+    //{ "generating",         "stopPosMining",            &stopPosMining,            true,   {} },
     //Oilcoin newrpc
     { "wallet",             "transactionSummary",       &transactionSummary,       true,  {} },
     { "wallet",             "newlisttransactions",      &newlisttransactions,      false,  {"account","count","skip","include_watchonly"} },
