@@ -28,8 +28,10 @@
 #include "wallet/walletdb.h"
 #include "pos/posminer.h"
 #include "rpc/blockchain.h"
-
+#include "superblock.h"
 #include <stdint.h>
+#include <string>
+
 
 #include <univalue.h>
 
@@ -3270,7 +3272,7 @@ UniValue newlisttransactions(const JSONRPCRequest& request)
     if (last != arrTmp.end()) arrTmp.erase(last, arrTmp.end());
     if (first != arrTmp.begin()) arrTmp.erase(arrTmp.begin(), first);
 
-    std::reverse(arrTmp.begin(), arrTmp.end()); // Return oldest to newest
+    //std::reverse(arrTmp.begin(), arrTmp.end()); // Return oldest to newest
 
     ret.clear();
     ret.setArray();
@@ -3376,42 +3378,35 @@ UniValue listblockToJSON(const CBlock& block, const CBlockIndex* blockindex, CWa
     int nRequired;
     txnouttype type;
     std::vector<CTxDestination> addresses;
-    CAmount sumNet=0,sumFee=0;
     //oilccoin：lf :listblocks had LOCK2(cs_main, pwallet->cs_wallet)
     for(const auto& tx : block.vtx)
     {
         txsize++;
-        const CWalletTx& wtx = pwallet->mapWallet[tx->GetHash()];
+        //const CWalletTx& wtx = pwallet->mapWallet[tx->GetHash()];
         txs.push_back(tx->GetHash().GetHex());
-
-        CAmount nCredit = wtx.GetCredit(ISMINE_SPENDABLE);
-        CAmount nDebit = wtx.GetDebit(ISMINE_SPENDABLE);
-        CAmount nNet = nCredit - nDebit;
-        CAmount nFee = wtx.tx->GetValueOut() - nDebit;
-        
-        if(txsize == 1 && block.IsProofOfWork()){
-            //if the block is pow block ,get address who mined this block from coinbase_tx
-            if (!ExtractDestinations((*tx).vout[0].scriptPubKey, type, addresses, nRequired)) {
-                result.push_back(Pair("minedby","null"));
+        if(block.IsProofOfWork())
+        {
+            if(txsize == 1){
+                //if the block is pow block ,get address who mined this block from coinbase_tx
+                if (!ExtractDestinations((*tx).vout[0].scriptPubKey, type, addresses, nRequired)) 
+                    result.push_back(Pair("minedby","null"));
+                else
+                    result.push_back(Pair("minedby",CBitcoinAddress(addresses[0]).ToString()));
+                continue;
+                //the first tx is coinbase,coinbase is not fee
             }
-            result.push_back(Pair("minedby",CBitcoinAddress(addresses[0]).ToString()));
-            //the first tx is coinbase,coinbase is not fee
-        }else if(txsize == 2 && block.IsProofOfStake()){
-            //if the block is pos block ,get address who mined this block from coinbase_tx
-            if (!ExtractDestinations((*tx).vout[1].scriptPubKey, type, addresses, nRequired)) {
-                result.push_back(Pair("minedby","null"));
+        }else {
+            if(txsize == 2){
+                //if the block is pos block ,get address who mined this block from coinbase_tx
+                if (!ExtractDestinations((*tx).vout[1].scriptPubKey, type, addresses, nRequired))
+                    result.push_back(Pair("minedby","null"));
+                else
+                    result.push_back(Pair("minedby",CBitcoinAddress(addresses[0]).ToString()));
+                //the first tx is coinbase,coinbase is not fee.
+                continue;
             }
-            result.push_back(Pair("minedby",CBitcoinAddress(addresses[0]).ToString()));
-             //the first tx is coinbase,coinbase is not fee.
-            sumFee += nFee;
-            break;
-        }else if(block.IsProofOfWork()){
-            sumFee += nFee;
-        }
-        sumNet += nNet;
+        } 
     }
-    result.push_back(Pair("amount", ValueFromAmount(sumNet - sumFee)));
-    result.push_back(Pair("fee", ValueFromAmount(sumFee)));
     result.push_back(Pair("txsize", txsize));
     result.push_back(Pair("tx", txs));
     result.push_back(Pair("time", block.GetBlockTime()));
