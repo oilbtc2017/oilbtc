@@ -1717,6 +1717,17 @@ void CWallet::ReacceptWalletTransactions()
 
 bool CWalletTx::RelayWalletTransaction(CConnman* connman)
 {
+    //oilbtc:bug fix
+    if(!pwallet){
+        LogPrintf("RelayWalletTransaction, pwallet is null\n");
+        return false;
+    }
+
+    if(!pwallet->GetBroadcastTransactions()){
+        LogPrintf("RelayWalletTransaction,pwallet->GetBroadcastTransactions() is false\n");
+        return false;
+    }
+
     assert(pwallet->GetBroadcastTransactions());
     if (!(IsCoinBase() || IsCoinStake()) && !isAbandoned() && GetDepthInMainChain() == 0)
     {
