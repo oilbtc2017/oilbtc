@@ -25,12 +25,12 @@ enum
     SIGHASH_ALL = 1,
     SIGHASH_NONE = 2,
     SIGHASH_SINGLE = 3,
-    //Oilcoin modify two-way protect :create by lf
+    //posfork modify two-way protect :create by lf
     SIGHASH_FORKID = 0x56,
     SIGHASH_ANYONECANPAY = 0x80,
 };
 
-//Oilcoin modify two-way protect :create by lf
+//posfork modify two-way protect :create by lf
 
 /** Fork IDs **/
  enum
@@ -121,7 +121,7 @@ enum
     //
     SCRIPT_VERIFY_WITNESS_PUBKEYTYPE = (1U << 15),
 
-    //Oilcoin modify two-way protect :create by lf
+    //posfork modify two-way protect :create by lf
     
     // FORKID should be enabled by default
     //
@@ -147,8 +147,8 @@ enum SigVersion
     SIGVERSION_WITNESS_V0 = 1,
 };
 
-//Oilcoin modify two-way protect :create by lf
 //uint256 SignatureHash(const CScript &scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType, const CAmount& amount, SigVersion sigversion, const PrecomputedTransactionData* cache = nullptr);
+//posfork:two way protect
 uint256 SignatureHash(const CScript &scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType, const CAmount& amount, SigVersion sigversion, const PrecomputedTransactionData* cache = nullptr, const int forkid=FORKID_IN_USE);
 
 class BaseSignatureChecker
@@ -204,9 +204,5 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const CScriptWitness* witness, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror = nullptr);
 
 size_t CountWitnessSigOps(const CScript& scriptSig, const CScript& scriptPubKey, const CScriptWitness* witness, unsigned int flags);
-
-////Oilcoin:Gerald
-bool IsCompressedOrUncompressedPubKey(const valtype &vchPubKey);
-////
 
 #endif // BITCOIN_SCRIPT_INTERPRETER_H

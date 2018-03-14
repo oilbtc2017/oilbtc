@@ -417,15 +417,13 @@ bool DummySignatureCreator::CreateSig(std::vector<unsigned char>& vchSig, const 
     vchSig[4 + 33] = 0x02;
     vchSig[5 + 33] = 32;
     vchSig[6 + 33] = 0x01;
-    //Oilcoin modify two-way protect :create by lf
-    //vchSig[6 + 33 + 32] = SIGHASH_ALL ;
+    //posfork:two way protect
     vchSig[6 + 33 + 32] = SIGHASH_ALL | SIGHASH_FORKID;
     return true;
 }
 
-
-////Oilcoin:Gerald
-bool VerifySignature(const Coin& coin, const uint256 txFromHash, const CTransaction& txTo, unsigned int nIn, unsigned int flags)
+//posfork:pos
+bool VerifySignatureStake(const Coin& coin, const uint256 txFromHash, const CTransaction& txTo, unsigned int nIn, unsigned int flags)
 {
     TransactionSignatureChecker checker(&txTo, nIn, 0);
 	
@@ -437,5 +435,3 @@ bool VerifySignature(const Coin& coin, const uint256 txFromHash, const CTransact
 		
     return VerifyScript(txin.scriptSig, txout.scriptPubKey, NULL, flags, checker);
 }
-
-////

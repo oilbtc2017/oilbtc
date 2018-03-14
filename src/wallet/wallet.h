@@ -7,8 +7,8 @@
 #define BITCOIN_WALLET_WALLET_H
 
 #include "amount.h"
-#include "streams.h"
 #include "policy/feerate.h"
+#include "streams.h"
 #include "tinyformat.h"
 #include "ui_interface.h"
 #include "utilstrencodings.h"
@@ -18,7 +18,7 @@
 #include "wallet/crypter.h"
 #include "wallet/walletdb.h"
 #include "wallet/rpcwallet.h"
-#include "consensus/params.h"
+
 #include <algorithm>
 #include <atomic>
 #include <map>
@@ -28,9 +28,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
 
 typedef CWallet* CWalletRef;
 extern std::vector<CWalletRef> vpwallets;
@@ -263,6 +260,8 @@ public:
 
     const uint256& GetHash() const { return tx->GetHash(); }
     bool IsCoinBase() const { return tx->IsCoinBase(); }
+
+    //posfork:pos
     bool IsCoinStake() const { return tx->IsCoinStake(); }
 };
 
@@ -690,6 +689,9 @@ private:
     TxSpends mapTxSpends;
     void AddToSpends(const COutPoint& outpoint, const uint256& wtxid);
     void AddToSpends(const uint256& wtxid);
+    //posfork:pos
+    void RemoveFromSpends(const COutPoint& outpoint, const uint256& wtxid);
+    void RemoveFromSpends(const uint256& wtxid);
 
     /* Mark a transaction (and its in-wallet descendants) as conflicting with a particular block. */
     void MarkConflicted(const uint256& hashBlock, const uint256& hashTx);
@@ -908,13 +910,6 @@ public:
     void GetKeyBirthTimes(std::map<CTxDestination, int64_t> &mapKeyBirth) const;
     unsigned int ComputeTimeSmart(const CWalletTx& wtx) const;
 
-    /*
-        Oilcoin:Gerald
-    */
-    bool HaveAvailableCoinsForStaking() const;
-    void AvailableCoinsForStaking(std::vector<COutput>& vCoins) const;
-    bool CreateCoinStake(const CKeyStore &keystore, unsigned int nBits, const CAmount& nTotalFees, uint32_t nTimeBlock, CMutableTransaction& tx, CKey& key);
-    bool SelectCoinsForStaking(CAmount& nTargetValue, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, CAmount& nValueRet) const;
     /** 
      * Increment the next transaction order id
      * @return next transaction order id
@@ -1059,6 +1054,9 @@ public:
 
     //! get the current wallet format (the oldest client version guaranteed to understand this wallet)
     int GetVersion() { LOCK(cs_wallet); return nWalletVersion; }
+
+    //! posfork:pos disable transaction for coinstake
+    void DisableTransaction(const CTransaction &tx);
 
     //! Get wallet transactions that conflict with given transaction (spend same outputs)
     std::set<uint256> GetConflicts(const uint256& txid) const;

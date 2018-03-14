@@ -64,9 +64,10 @@ typedef enum ScriptError_t
     SCRIPT_ERR_WITNESS_UNEXPECTED,
     SCRIPT_ERR_WITNESS_PUBKEYTYPE,
 
-    /* fork id *///Oilcoin modify two-way protect :create by lf
+    //posfork:two way protect
+    /* fork id */
     SCRIPT_ERR_MUST_USE_FORKID,
-
+    
     SCRIPT_ERR_ERROR_COUNT
 } ScriptError;
 

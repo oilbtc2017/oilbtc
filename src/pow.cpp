@@ -9,7 +9,6 @@
 #include "chain.h"
 #include "primitives/block.h"
 #include "uint256.h"
-#include "consensus/consensus.h"
 #include "superblock.h"
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
@@ -17,13 +16,10 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     assert(pindexLast != nullptr);
     unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
 
-    if (pindexLast != nullptr && 
-            pindexLast->nHeight > SUPER_BLOCK_HEIGHT && 
-            pindexLast->nHeight <= LAST_POW_BLOCK_HEIGHT) { 
-        uint256 limit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        return UintToArith256(limit).GetCompact();
-    }   
-
+    //posfork:superblock
+    if(getSuperBlockWorkLimit(pindexLast,nProofOfWorkLimit))
+        return nProofOfWorkLimit;
+    
     // Only change once per difficulty adjustment interval
     if ((pindexLast->nHeight+1) % params.DifficultyAdjustmentInterval() != 0)
     {
@@ -89,10 +85,16 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&
     bool fNegative;
     bool fOverflow;
     arith_uint256 bnTarget;
+
     bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
-    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit)) {
+
+    // Check range
+    if (fNegative || bnTarget == 0 || fOverflow )//|| bnTarget > UintToArith256(params.powLimit))
         return false;
-    } else {
-        return UintToArith256(hash) <= bnTarget;
-    }
+
+    // Check proof of work matches claimed amount
+    if (UintToArith256(hash) > bnTarget)
+        return false;
+
+    return true;
 }

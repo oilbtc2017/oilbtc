@@ -121,6 +121,7 @@ BITCOIN_CORE_H = \
   policy/fees.h \
   policy/policy.h \
   policy/rbf.h \
+  superblock.h \
   pow.h \
   protocol.h \
   random.h \
@@ -155,7 +156,7 @@ BITCOIN_CORE_H = \
   util.h \
   utilmoneystr.h \
   utiltime.h \
-  superblock.h \
+  validationpos.h \
   validation.h \
   pos/posminer.h \
   pos/pos.h \
@@ -168,6 +169,7 @@ BITCOIN_CORE_H = \
   wallet/rpcwallet.h \
   wallet/wallet.h \
   wallet/walletdb.h \
+  walletpos.h \
   warnings.h \
   zmq/zmqabstractnotifier.h \
   zmq/zmqconfig.h\
@@ -204,6 +206,7 @@ libbitcoin_server_a_SOURCES = \
   policy/fees.cpp \
   policy/policy.cpp \
   policy/rbf.cpp \
+  superblock.cpp \
   pow.cpp \
   rest.cpp \
   rpc/blockchain.cpp \
@@ -220,7 +223,7 @@ libbitcoin_server_a_SOURCES = \
   txdb.cpp \
   txmempool.cpp \
   ui_interface.cpp \
-  superblock.cpp \
+  validationpos.cpp \
   validation.cpp \
   validationinterface.cpp \
   versionbits.cpp \
@@ -247,8 +250,9 @@ libbitcoin_wallet_a_SOURCES = \
   wallet/rpcdump.cpp \
   wallet/rpcwallet.cpp \
   wallet/wallet.cpp \
-  pos/posminer.cpp \
   wallet/walletdb.cpp \
+  walletpos.cpp \
+  pos/posminer.cpp \
   $(BITCOIN_CORE_H)
 
 # crypto primitives library

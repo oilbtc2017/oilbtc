@@ -8,7 +8,7 @@
 
 #include "primitives/block.h"
 #include "txmempool.h"
-#include "wallet/wallet.h"
+
 #include <stdint.h>
 #include <memory>
 #include "boost/multi_index_container.hpp"
@@ -21,26 +21,6 @@ class CScript;
 namespace Consensus { struct Params; };
 
 static const bool DEFAULT_PRINTPRIORITY = false;
-
-
-////Oilcoin:Gerald
-
-static const bool DEFAULT_STAKE = true;
-
-static const bool DEFAULT_STAKE_CACHE = true;
-//How many seconds to look ahead and prepare a block for staking
-//Look ahead up to 3 "timeslots" in the future, 48 seconds
-//Reduce this to reduce computational waste for stakers, increase this to increase the amount of time available to construct full blocks
-static const int32_t MAX_STAKE_LOOKAHEAD = 16 * 3;
-
-//Will not attempt to add more transactions when GetAdjustedTime() >= nTimeLimit
-//And nTimeLimit = StakeExpirationTime - STAKE_TIME_BUFFER
-static const int32_t STAKE_TIME_BUFFER = 2;
-
-//How often to try to stake blocks in milliseconds
-//Note this is overridden for regtest mode
-static const int32_t STAKER_POLLING_PERIOD = 5000;
-////
 
 struct CBlockTemplate
 {
@@ -91,7 +71,7 @@ struct modifiedentry_iter {
 // except operating on CTxMemPoolModifiedEntry.
 // TODO: refactor to avoid duplication of this logic.
 struct CompareModifiedEntry {
-    bool operator()(const CTxMemPoolModifiedEntry &a, const CTxMemPoolModifiedEntry &b)
+    bool operator()(const CTxMemPoolModifiedEntry &a, const CTxMemPoolModifiedEntry &b) const
     {
         double f1 = (double)a.nModFeesWithAncestors * b.nSizeWithAncestors;
         double f2 = (double)b.nModFeesWithAncestors * a.nSizeWithAncestors;
@@ -106,7 +86,7 @@ struct CompareModifiedEntry {
 // This is sufficient to sort an ancestor package in an order that is valid
 // to appear in a block.
 struct CompareTxIterByAncestorCount {
-    bool operator()(const CTxMemPool::txiter &a, const CTxMemPool::txiter &b)
+    bool operator()(const CTxMemPool::txiter &a, const CTxMemPool::txiter &b) const
     {
         if (a->GetCountWithAncestors() != b->GetCountWithAncestors())
             return a->GetCountWithAncestors() < b->GetCountWithAncestors();
@@ -188,12 +168,9 @@ public:
     /** Construct a new block template with coinbase to scriptPubKeyIn */
     std::unique_ptr<CBlockTemplate> CreateNewBlock(const CScript& scriptPubKeyIn, bool fMineWitnessTx=true);
 
-////Oilcoin:Gerald
-    //std::unique_ptr<CBlockTemplate> CreateNewBlock(const CScript& scriptPubKeyIn, bool fProofOfStake=false, int64_t* pTotalFees = 0, int32_t nTime=0, int32_t nTimeLimit=0);
+    //posfork:pos
     std::unique_ptr<CBlockTemplate> CreateEmptyBlock(const CScript& scriptPubKeyIn, int64_t* pTotalFees = 0, int32_t nTime=0);
     std::unique_ptr<CBlockTemplate> CreateNewPosBlock(const CScript& scriptPubKeyIn, bool fProofOfStake=true, int64_t* pTotalFees = 0, int32_t nTime=0, int32_t nTimeLimit=0);
-////
-
 private:
     // utility functions
     /** Clear the block's state and prepare for assembling a new block */
@@ -231,9 +208,5 @@ private:
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
 int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev);
-
-////Oilcoin:Gerald
-bool CheckStake(const std::shared_ptr<const CBlock> pblock, CWallet& wallet);
-////
 
 #endif // BITCOIN_MINER_H

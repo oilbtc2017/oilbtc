@@ -502,8 +502,7 @@ static void MutateTxDelOutput(CMutableTransaction& tx, const std::string& strOut
     // delete output from transaction
     tx.vout.erase(tx.vout.begin() + outIdx);
 }
-
-//Oilcoin modify two-way protect :create by lf
+//posfork:two-way-protect
 //static const unsigned int N_SIGHASH_OPTS = 6;
 static const unsigned int N_SIGHASH_OPTS = 12;
 static const struct {
@@ -516,7 +515,7 @@ static const struct {
     {"ALL|ANYONECANPAY", SIGHASH_ALL|SIGHASH_ANYONECANPAY},
     {"NONE|ANYONECANPAY", SIGHASH_NONE|SIGHASH_ANYONECANPAY},
     {"SINGLE|ANYONECANPAY", SIGHASH_SINGLE|SIGHASH_ANYONECANPAY},
-    //Oilcoin modify two-way protect :create by lf
+    //posfork two-way-protect
     {"ALL|FORKID", SIGHASH_ALL|SIGHASH_FORKID},
     {"NONE|FORKID", SIGHASH_NONE|SIGHASH_FORKID},
     {"SINGLE|FORKID", SIGHASH_SINGLE|SIGHASH_FORKID},
@@ -535,6 +534,7 @@ static bool findSighashFlags(int& flags, const std::string& flagStr)
             return true;
         }
     }
+
     return false;
 }
 
@@ -552,7 +552,7 @@ static CAmount AmountFromValue(const UniValue& value)
 
 static void MutateTxSign(CMutableTransaction& tx, const std::string& flagStr)
 {
-    //Oilcoin modify two-way protect :create by lf
+    //posfork two-way-protect
     //int nHashType = SIGHASH_ALL;
     int nHashType = SIGHASH_ALL | SIGHASH_FORKID;
 
@@ -647,10 +647,10 @@ static void MutateTxSign(CMutableTransaction& tx, const std::string& flagStr)
 
     const CKeyStore& keystore = tempKeystore;
 
-    //Oilcoin modify two-way protect :create by lf
+    //posfork:two way protect 
     //bool fHashSingle = ((nHashType & ~SIGHASH_ANYONECANPAY) == SIGHASH_SINGLE);
     bool fHashSingle = ((nHashType & ~(SIGHASH_ANYONECANPAY | SIGHASH_FORKID)) == SIGHASH_SINGLE);
-    
+
     // Sign what we can:
     for (unsigned int i = 0; i < mergedTx.vin.size(); i++) {
         CTxIn& txin = mergedTx.vin[i];

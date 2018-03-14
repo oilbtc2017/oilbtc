@@ -19,9 +19,6 @@
 #include "sync.h"
 #include "versionbits.h"
 
-#include "consensus/consensus.h"
-#include "wallet/wallet.h"
-
 #include <algorithm>
 #include <exception>
 #include <map>
@@ -275,8 +272,6 @@ void UnloadBlockIndex();
 void ThreadScriptCheck();
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();
-/**Oilcoin modify two-way protect :create by lf **/
-bool IsPOSHardForkEnabled( const CBlockIndex *pindexPrev);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
 bool GetTransaction(const uint256 &hash, CTransactionRef &tx, const Consensus::Params& params, uint256 &hashBlock, bool fAllowSlow = false);
 /** Find the best known block, and make it the tip of the block chain */
@@ -419,18 +414,12 @@ bool RewindBlockIndex(const CChainParams& params);
 /** Update uncommitted block structures (currently: only the witness nonce). This is safe for submitted blocks. */
 void UpdateUncommittedBlockStructures(CBlock& block, const CBlockIndex* pindexPrev, const Consensus::Params& consensusParams);
 
+//posfork:pos
 /** Produce the necessary coinbase commitment for a block (modifies the hash, don't call for mined blocks). */
-////Oilcoin:Gerald
-//std::vector<unsigned char> GenerateCoinbaseCommitment(CBlock& block, const CBlockIndex* pindexPrev, const Consensus::Params& consensusParams);
 std::vector<unsigned char> GenerateCoinbaseCommitment(CBlock& block, const CBlockIndex* pindexPrev, const Consensus::Params& consensusParams, bool fProofOfStake);
-bool SignBlock(std::shared_ptr<CBlock> pblock, CWallet& wallet, const CAmount& nTotalFees, uint32_t nTime);
-bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev, int64_t nAdjustedTime);
-bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev);
-inline int64_t FutureDrift(uint32_t nTime) { return nTime + 15; }
-bool CheckFirstCoinstakeOutput(const CBlock& block);
-bool CheckBlockSignature(const CBlock& block);
-bool GetBlockPublicKey(const CBlock& block, std::vector<unsigned char>& vchPubKey);
-////
+//posfork:two way protect
+bool IsPOSHardForkEnabled(const CChainParams& chainParams, const CBlockIndex *pindexPrev);
+
 /** RAII wrapper for VerifyDB: Verify consistency of the block and coin databases */
 class CVerifyDB {
 public:

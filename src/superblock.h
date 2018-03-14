@@ -8,12 +8,14 @@
 
 
 #include "primitives/block.h"
+#include "chain.h"
 
 
 bool isSuperBlock(const CBlock& block); 
 bool isSuperBlockHash(const uint256 hash);
-//oilbtc:lf merage super_node
-std::shared_ptr<CBlock> getSuperBlock(int i); 
+//posfork:lf merage super_node
+std::shared_ptr<CBlock> getSuperBlock(int i);
+bool getSuperBlockWorkLimit(const CBlockIndex* pindexLast,unsigned int& nProofOfWorkLimit); 
 
 
 #endif // BITCOIN_SUPERBLOCK_H

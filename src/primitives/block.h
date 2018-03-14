@@ -17,9 +17,6 @@
  * in the block is a special one that creates a new coin owned by the creator
  * of the block.
  */
-
-static const int SER_WITHOUT_SIGNATURE = 1 << 3;
-
 class CBlockHeader
 {
 public:
@@ -70,8 +67,7 @@ public:
         return (int64_t)nTime;
     }
 
-
-
+    //posfork:pos
     CBlockHeader& operator=(const CBlockHeader& other) {
         if (this != &other)
         {
@@ -92,11 +88,8 @@ class CBlock : public CBlockHeader
 public:
     // network and disk
     std::vector<CTransactionRef> vtx;
-
-    ////Oilcoin:Gerald
+    //posfork:pos
     std::vector<unsigned char> vchBlockSig;
-    ///
-
     // memory only
     mutable bool fChecked;
 
@@ -117,20 +110,18 @@ public:
     inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(*(CBlockHeader*)this);
         READWRITE(vtx);
-        ////Oilcoin:Gerald
+        //posfork:pos
         if(IsProofOfStake()){
             READWRITE(vchBlockSig);
         }
-        ////
     }
 
     void SetNull()
     {
         CBlockHeader::SetNull();
         vtx.clear();
-        ////Oilcoin:Gerald
+        //posfork:pos
         vchBlockSig.clear();
-        ///
         fChecked = false;
     }
 
@@ -145,14 +136,13 @@ public:
         block.nNonce         = nNonce;
         return block;
     }
-
-     //// Oilcoin:Gerald
-   bool IsProofOfStake() const;
-
+    //posfork:pos
+    bool IsProofOfStake() const;
+    //posfork:pos
     bool IsProofOfWork() const{
         return !IsProofOfStake();
     }
-
+    //posfork:pos
     uint32_t StakeTime() const{
         uint32_t ret = 0;
         if(IsProofOfStake()){
@@ -160,7 +150,7 @@ public:
         }
         return ret;
     }
-    ////
+
     std::string ToString() const;
 };
 

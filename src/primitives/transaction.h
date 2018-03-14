@@ -159,17 +159,15 @@ public:
     {
         return (nValue == -1);
     }
-
-    ////Oilcoin:Gerald
+    //posfork:pos
     void SetEmpty(){
         nValue = 0;
         scriptPubKey.clear();
     }
-
+    //posfork:pos
     bool IsEmpty() const{
         return (nValue == 0 && scriptPubKey.empty());
     }
-    ////
 
     friend bool operator==(const CTxOut& a, const CTxOut& b)
     {
@@ -355,8 +353,8 @@ public:
     {
         return a.hash != b.hash;
     }
-
-    ////Oilcoin:Gerald
+    
+    //posfork:pos
     bool IsCoinStake() const{
         // ppcoin: the coin stake transaction is marked with the first output empty
         return (vin.size() > 0 && (!vin[0].prevout.IsNull()) && vout.size() >= 2 && vout[0].IsEmpty());
@@ -366,8 +364,6 @@ public:
         // not coin base or coin stake transaction
         return !IsCoinBase() && !IsCoinStake();
     }
-
-    ////
 
     std::string ToString() const;
 

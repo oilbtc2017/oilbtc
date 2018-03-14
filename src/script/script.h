@@ -181,11 +181,6 @@ enum opcodetype
     OP_NOP9 = 0xb8,
     OP_NOP10 = 0xb9,
 
-    //// Oilcoin:Gerald, unknow usage yet
-    OP_CREATE = 0xc1,
-    OP_CALL = 0xc2,
-    OP_SPEND = 0xc3,
-    ////
 
     // template matching params
     OP_SMALLINTEGER = 0xfa,
@@ -658,22 +653,6 @@ public:
     {
         return (size() > 0 && *begin() == OP_RETURN) || (size() > MAX_SCRIPT_SIZE);
     }
-
-    ///Oilcoin:Gerald
-    // bool HasOpCreate() const
-    // {
-    //     return Find(OP_CREATE) == 1;
-    // }
-    
-    // bool HasOpCall() const
-    // {
-    //     return Find(OP_CALL) == 1;
-    // }
-    // bool HasOpSpend() const
-    // {
-    //     return size()==1 && *begin() == OP_SPEND;
-    // }
-    /////////////////////////////////////////
 
     void clear()
     {

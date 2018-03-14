@@ -31,8 +31,7 @@ std::string CBlock::ToString() const
     return s.str();
 }
 
-///Oilcoin:Gerald
-
+//posfork:pos
 bool CBlock::IsProofOfStake() const{
     //coinbase needed
     if(this->vtx.empty() || !this->vtx[0]->IsCoinBase()){
@@ -58,5 +57,3 @@ bool CBlock::IsProofOfStake() const{
 
     return false;
 }
-
-////
