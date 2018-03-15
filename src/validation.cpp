@@ -1817,7 +1817,7 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
     uint256 hashProof;
     if(block.IsProofOfStake()
             &&!CheckKernelAndUpdateHashProof(block, state, chainparams.GetConsensus(), pindex, view, hashProof)){
-        return error("CheckKernelAndUpdateHashProof Failed:%s\n", state.GetRejectReason());
+        return state.DoS(100, error("CheckKernelAndUpdateHashProof Failed", __func__),REJECT_INVALID, "bad-hash-proof");
     }
 
     for (unsigned int i = 0; i < block.vtx.size(); i++)
