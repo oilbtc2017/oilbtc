@@ -141,13 +141,13 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "echojson", 8, "arg8" },
     { "echojson", 9, "arg9" },
 
-    //Oilcoin newrpc 
+    //posfork newrpc 
     { "listblocks", 0, "page" },
     { "listblocks", 1, "length" },
     { "newlisttransactions", 1, "count" },
     { "newlisttransactions", 2, "skip" },
     { "newlisttransactions", 3, "include_watchonly" },
-    { "recentTxStatistics", 0, "daycount" },
+    { "recenttxstatistics", 0, "daycount" },
 };
 
 class CRPCConvertTable

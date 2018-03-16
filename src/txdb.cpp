@@ -287,17 +287,14 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
                 pindexNew->nStatus        = diskindex.nStatus;
                 pindexNew->nTx            = diskindex.nTx;
 
-                //Oilcoin:Gerald
+                //posfork:pos nNonce
                 pindexNew->nStakeModifier = diskindex.nStakeModifier;
                 pindexNew->prevoutStake   = diskindex.prevoutStake;
-                pindexNew->hashProof    = diskindex.hashProof; // qtum
-
-
-                if(pindexNew->nHeight <= consensusParams.nLastPOWBlock){
-                    if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, consensusParams))
-                        return error("%s: CheckProofOfWork failed: %s", __func__, pindexNew->ToString());
-                }
-                ////
+                pindexNew->hashProof    = diskindex.hashProof; 
+                
+                //posfork:pos
+                if (pindexNew->nHeight <= consensusParams.nLastPOWBlock &&!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, consensusParams))
+                    return error("%s: CheckProofOfWork failed: %s", __func__, pindexNew->ToString());
 
                 pcursor->Next();
             } else {

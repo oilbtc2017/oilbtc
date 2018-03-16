@@ -165,8 +165,25 @@ uint256 BlockMerkleRoot(const CBlock& block, bool* mutated)
     return ComputeMerkleRoot(leaves, mutated);
 }
 
-////Oilcoin:Gerald
-uint256 BlockWitnessMerkleRoot(const CBlock& block, bool* mutated, bool* pfProofOfStake){
+//posfork:pos
+uint256 BlockWitnessMerkleRoot(const CBlock& block, bool* mutated, bool* pfProofOfStake)
+{
+    bool fProofOfStake = pfProofOfStake ? *pfProofOfStake : block.IsProofOfStake();
+    //if is pos go to BlockWitnessMerkleRootPOS
+    if (fProofOfStake)
+        return BlockWitnessMerkleRootPOS(block,mutated,pfProofOfStake);
+    
+    std::vector<uint256> leaves;
+    leaves.resize(block.vtx.size());
+    leaves[0].SetNull(); // The witness hash of the coinbase is 0.
+    for (size_t s = 1; s < block.vtx.size(); s++) {
+        leaves[s] = block.vtx[s]->GetWitnessHash();
+    }
+    return ComputeMerkleRoot(leaves, mutated);
+}
+
+//posfork:pos
+uint256 BlockWitnessMerkleRootPOS(const CBlock& block, bool* mutated, bool* pfProofOfStake){
     bool fProofOfStake = pfProofOfStake ? *pfProofOfStake : block.IsProofOfStake();
     std::vector<uint256> leaves;
     leaves.resize(block.vtx.size());
@@ -179,18 +196,6 @@ uint256 BlockWitnessMerkleRoot(const CBlock& block, bool* mutated, bool* pfProof
     }
     return ComputeMerkleRoot(leaves, mutated);
 }
-
-// uint256 BlockWitnessMerkleRoot(const CBlock& block, bool* mutated)
-// {
-//     std::vector<uint256> leaves;
-//     leaves.resize(block.vtx.size());
-//     leaves[0].SetNull(); // The witness hash of the coinbase is 0.
-//     for (size_t s = 1; s < block.vtx.size(); s++) {
-//         leaves[s] = block.vtx[s]->GetWitnessHash();
-//     }
-//     return ComputeMerkleRoot(leaves, mutated);
-// }
-////
 
 std::vector<uint256> BlockMerkleBranch(const CBlock& block, uint32_t position)
 {

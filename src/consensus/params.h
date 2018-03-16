@@ -10,9 +10,6 @@
 #include <map>
 #include <string>
 
-
-
-
 namespace Consensus {
 
 enum DeploymentPos
@@ -66,15 +63,14 @@ struct Params {
     int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing; }
     uint256 nMinimumChainWork;
     uint256 defaultAssumeValid;
-
-    ////Oilcoin:Gerald
+    
+    //posfork:pos
     uint256 posLimit;
     bool fPoSNoRetargeting;
     int nLastPOWBlock;
     int nPosSubsidyHalvingInterval;
     int64_t  nPosTargetTimespan;
     int64_t nPosTargetSpacing;
-    ////
 };
 } // namespace Consensus
 

@@ -28,10 +28,8 @@
 #include "wallet/walletdb.h"
 #include "pos/posminer.h"
 #include "rpc/blockchain.h"
-#include "superblock.h"
-#include <stdint.h>
-#include <string>
 
+#include <stdint.h>
 
 #include <univalue.h>
 
@@ -3137,18 +3135,7 @@ UniValue generate(const JSONRPCRequest& request)
     return generateBlocks(coinbase_script, num_generate, max_tries, true);
 }
 
-//Oilcoin:Gerald, generate pos block
-UniValue generatepos(const JSONRPCRequest& request)
-{
-    CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
-        return NullUniValue;
-    }
-    return minePosBlock(pwallet);
-}
-
-//Oilcoin newrpc :created by lf : newlisttransactions
+//posfork:newrpc
 UniValue newlisttransactions(const JSONRPCRequest& request)
 {
     CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
@@ -3237,7 +3224,7 @@ UniValue newlisttransactions(const JSONRPCRequest& request)
     if (nFrom < 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Negative from");
 
-    //Oilcoin newrpc : add CurrentTime 2017-12-29
+    //posfork newrpc : add CurrentTime 2017-12-29
     UniValue list(UniValue::VOBJ);
     UniValue ret(UniValue::VARR);
 
@@ -3272,21 +3259,21 @@ UniValue newlisttransactions(const JSONRPCRequest& request)
     if (last != arrTmp.end()) arrTmp.erase(last, arrTmp.end());
     if (first != arrTmp.begin()) arrTmp.erase(arrTmp.begin(), first);
 
-    //std::reverse(arrTmp.begin(), arrTmp.end()); // Return oldest to newest
+    std::reverse(arrTmp.begin(), arrTmp.end()); // Return oldest to newest
 
     ret.clear();
     ret.setArray();
     ret.push_backV(arrTmp);
     
-    //Oilcoin newrpc : add CurrentTime 2017-12-29
+    //posfork newrpc : add CurrentTime 2017-12-29
     list.push_back(Pair("currentTime",GetAdjustedTime()));
     list.push_back(Pair("size",(int)ret.size()));
     list.push_back(Pair("tx",ret));
     return list;
 }
 
-//Oilcoin newrpc :created by lf : transactionSummary deprecated
-UniValue transactionSummary(const JSONRPCRequest& request)
+//posfork:newrpc
+UniValue transactionsummary(const JSONRPCRequest& request)
 {   
     if (request.fHelp || request.params.size() > 0)
         throw std::runtime_error(
@@ -3357,7 +3344,7 @@ UniValue transactionSummary(const JSONRPCRequest& request)
     return txme;
 }
 
-//Oilcoin newrpc
+//posfork:newrpc
 UniValue listblockToJSON(const CBlock& block, const CBlockIndex* blockindex, CWallet * const pwallet)
 {
     UniValue result(UniValue::VOBJ);
@@ -3378,34 +3365,26 @@ UniValue listblockToJSON(const CBlock& block, const CBlockIndex* blockindex, CWa
     int nRequired;
     txnouttype type;
     std::vector<CTxDestination> addresses;
-    //oilccoin：lf :listblocks had LOCK2(cs_main, pwallet->cs_wallet)
     for(const auto& tx : block.vtx)
     {
         txsize++;
-        //const CWalletTx& wtx = pwallet->mapWallet[tx->GetHash()];
         txs.push_back(tx->GetHash().GetHex());
-        if(block.IsProofOfWork())
-        {
-            if(txsize == 1){
-                //if the block is pow block ,get address who mined this block from coinbase_tx
-                if (!ExtractDestinations((*tx).vout[0].scriptPubKey, type, addresses, nRequired)) 
-                    result.push_back(Pair("minedby","null"));
-                else
-                    result.push_back(Pair("minedby",CBitcoinAddress(addresses[0]).ToString()));
-                continue;
-                //the first tx is coinbase,coinbase is not fee
-            }
-        }else {
-            if(txsize == 2){
-                //if the block is pos block ,get address who mined this block from coinbase_tx
-                if (!ExtractDestinations((*tx).vout[1].scriptPubKey, type, addresses, nRequired))
-                    result.push_back(Pair("minedby","null"));
-                else
-                    result.push_back(Pair("minedby",CBitcoinAddress(addresses[0]).ToString()));
-                //the first tx is coinbase,coinbase is not fee.
-                continue;
-            }
-        } 
+
+        if(txsize == 1 && block.IsProofOfWork()){
+            //if the block is pow block ,get address who mined this block from coinbase_tx
+            if (!ExtractDestinations((*tx).vout[0].scriptPubKey, type, addresses, nRequired)) 
+                result.push_back(Pair("minedby","null"));
+            else
+                result.push_back(Pair("minedby",CBitcoinAddress(addresses[0]).ToString()));
+            //the first tx is coinbase,coinbase is not fee
+        }else if(txsize == 2 && block.IsProofOfStake()){
+            //if the block is pos block ,get address who mined this block from coinbase_tx
+            if (!ExtractDestinations((*tx).vout[1].scriptPubKey, type, addresses, nRequired)) 
+                result.push_back(Pair("minedby","null"));
+            else
+                result.push_back(Pair("minedby",CBitcoinAddress(addresses[0]).ToString()));
+             //the first tx is coinbase,coinbase is not fee.
+        }
     }
     result.push_back(Pair("txsize", txsize));
     result.push_back(Pair("tx", txs));
@@ -3424,7 +3403,7 @@ UniValue listblockToJSON(const CBlock& block, const CBlockIndex* blockindex, CWa
     return result;
 }
 
-//Oilcoin newrpc :created by lf : showblocklist by page and length
+//posfork:newrpc
 UniValue listblocks(const JSONRPCRequest& request)
 {
     CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
@@ -3462,7 +3441,7 @@ UniValue listblocks(const JSONRPCRequest& request)
             + HelpExampleRpc("listblocks", "0 100")
         );
 
-    LOCK2(cs_main, pwallet->cs_wallet);//oilcoin:lf:advisor listsinceblock LOCK2(cs_main, pwallet->cs_wallet)
+    LOCK2(cs_main, pwallet->cs_wallet);//posfork:lf:advisor listsinceblock LOCK2(cs_main, pwallet->cs_wallet)
     int page = request.params[0].isNull() ? 0:request.params[0].get_int();
     int nChainHeight = chainActive.Height();
     int limit = request.params[1].isNull() ? DEFAULT_LISTBLOCKS_LENGTH:(request.params[1].get_int() > MAX_LISTBLOCKS_LENGTH? MAX_LISTBLOCKS_LENGTH :request.params[1].get_int());
@@ -3506,28 +3485,16 @@ UniValue listblocks(const JSONRPCRequest& request)
     return ret;
 }
 
-//Oilcoin newrpc :created by lf : getPosMiningInfo 
-UniValue getPosMiningInfo(const JSONRPCRequest& request){
-    return getPosMiningstatus();
-}
-
-//Oilcoin newrpc :created by lf : startPosMining 
-UniValue startPosMining(const JSONRPCRequest& request){
+//posfork:pos
+UniValue generatepos(const JSONRPCRequest& request)
+{
     CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
 
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
-        UniValue ret(UniValue::VOBJ);
-        ret.push_back(Pair("startMing", false));
         return NullUniValue;
     }
-    return startPosMiningThread(pwallet);
+    return minePosBlock(pwallet);
 }
-
-//Oilcoin newrpc :created by lf : stopPosMining 
-UniValue stopPosMining(const JSONRPCRequest& request){
-    return stopPosMiningThread();
-}
-
 extern UniValue abortrescan(const JSONRPCRequest& request); // in rpcdump.cpp
 extern UniValue dumpprivkey(const JSONRPCRequest& request); // in rpcdump.cpp
 extern UniValue importprivkey(const JSONRPCRequest& request);
@@ -3592,21 +3559,15 @@ static const CRPCCommand commands[] =
     { "wallet",             "walletpassphrasechange",   &walletpassphrasechange,   true,   {"oldpassphrase","newpassphrase"} },
     { "wallet",             "walletpassphrase",         &walletpassphrase,         true,   {"passphrase","timeout"} },
     { "wallet",             "removeprunedfunds",        &removeprunedfunds,        true,   {"txid"} },
-    
-    //Oilcoin newrpc
+    //posfork:newrpc
     { "wallet",             "listblocks",               &listblocks,               true,  {"page","length"} },
-
-    //{ "generating",         "generate",                 &generate,                 true,   {"nblocks","maxtries"} },
-    //Oilcoin:Gerald,add pos mining rpc call
-    //{ "generating",         "generatepos",              &generatepos,              true,   {} },
-     //Oilcoin:lf,add pos mining rpc call
-    //{ "generating",         "getPosMiningInfo",         &getPosMiningInfo,         true,   {} },
-    //{ "generating",         "startPosMining",           &startPosMining,           true,   {} },
-    //{ "generating",         "stopPosMining",            &stopPosMining,            true,   {} },
-    //Oilcoin newrpc
-    { "wallet",             "transactionSummary",       &transactionSummary,       true,  {} },
+    { "wallet",             "transactionsummary",       &transactionsummary,       true,  {} },
     { "wallet",             "newlisttransactions",      &newlisttransactions,      false,  {"account","count","skip","include_watchonly"} },
 
+    //posfork:pos
+    { "generating",         "generatepos",              &generatepos,              true,   {} },
+
+    { "generating",         "generate",                 &generate,                 true,   {"nblocks","maxtries"} },
 };
 
 void RegisterWalletRPCCommands(CRPCTable &t)

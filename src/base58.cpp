@@ -252,15 +252,11 @@ bool CBitcoinAddress::IsValid() const
 bool CBitcoinAddress::IsValid(const CChainParams& params) const
 {
     bool fCorrectSize = vchData.size() == 20;
-    //Oilcoin:Gerald, update address validation logic
-
+    //posfork:change the address prefix
     bool fKnownVersion = vchVersion == params.Base58Prefix(CChainParams::PUBKEY_ADDRESS) ||
                          vchVersion == params.Base58Prefix(CChainParams::SCRIPT_ADDRESS) ||
                          vchVersion == params.Base58Prefix(CChainParams::BTC_PUBKEY_ADDRESS) ||
-                         vchVersion == params.Base58Prefix(CChainParams::BTC_SCRIPT_ADDRESS) ;
-
-//    bool fKnownVersion = vchVersion == params.Base58Prefix(CChainParams::PUBKEY_ADDRESS) ||
-//                         vchVersion == params.Base58Prefix(CChainParams::SCRIPT_ADDRESS);
+                         vchVersion == params.Base58Prefix(CChainParams::BTC_SCRIPT_ADDRESS) ;;
     return fCorrectSize && fKnownVersion;
 }
 
@@ -270,9 +266,7 @@ CTxDestination CBitcoinAddress::Get() const
         return CNoDestination();
     uint160 id;
     memcpy(&id, vchData.data(), 20);
-
-
-    //Oilcoin:Gerald,update the original wallet address reading check
+    //posfork:change the address prefix
     if ((vchVersion == Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS))
             ||(vchVersion == Params().Base58Prefix(CChainParams::BTC_PUBKEY_ADDRESS)))
         return CKeyID(id);
@@ -281,14 +275,6 @@ CTxDestination CBitcoinAddress::Get() const
         return CScriptID(id);
     else
         return CNoDestination();
-
-
-//    if (vchVersion == Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS))
-//        return CKeyID(id);
-//    else if (vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS))
-//        return CScriptID(id);
-//    else
-//        return CNoDestination();
 }
 
 bool CBitcoinAddress::GetKeyID(CKeyID& keyID) const

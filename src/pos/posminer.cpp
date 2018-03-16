@@ -24,6 +24,8 @@
 #include "pos/pos.h"
 #include "miner.h"
 #include "wallet/wallet.h"
+#include "walletpos.h"
+#include "validationpos.h"
 
 #include <algorithm>
 #include <boost/thread.hpp>
@@ -33,16 +35,16 @@
 int64_t nLastCoinStakeSearchInterval = 0;
 
 static bool isMining = false;
-//Oilcoin:Gerald
+//posfork:pos
 UniValue minePosBlock(CWallet *pwallet) {
 
-    if (pwallet->IsLocked()){
+    if (pwallet->IsLocked())
         return NullUniValue;
-    }
-
+    
     UniValue blockHashes(UniValue::VOBJ);
     CReserveKey reservekey(pwallet);
-    if(pwallet->HaveAvailableCoinsForStaking() == false ) {
+    //posfork:pos
+    if(!HaveAvailableCoinsForStaking(pwallet)) {
         LogPrintf("wallet doesn't have available coins for staking\n");
         return blockHashes;
     }
@@ -64,7 +66,8 @@ UniValue minePosBlock(CWallet *pwallet) {
         pblocktemplate->block.nTime = i;
         std::shared_ptr<CBlock> pblock = std::make_shared<CBlock>(pblocktemplate->block);
 
-        if (SignBlock(pblock, *pwallet, nTotalFees, i) == false ) {
+        //posfork:pos
+        if (!SignBlock(pblock, pwallet, nTotalFees, i)) {
             continue;
         }
 
@@ -87,7 +90,7 @@ UniValue minePosBlock(CWallet *pwallet) {
         }
 
         std::shared_ptr<CBlock> pblockfilled = std::make_shared<CBlock>(pblocktemplatefilled->block);
-        if (SignBlock(pblockfilled, *pwallet, nTotalFees, i) == false ) {
+        if (!SignBlock(pblockfilled, pwallet, nTotalFees, i)) {
             break;
         }
 
@@ -103,7 +106,7 @@ UniValue minePosBlock(CWallet *pwallet) {
                 LogPrintf("minePosBlock: Valid PoS block took too long to create and has expired");
                 break; 
             }
-
+            //posfork:pos
             if (pblockfilled->GetBlockTime() > FutureDrift(GetAdjustedTime())) {
                 MilliSleep(3000);
                 continue;
@@ -122,70 +125,42 @@ UniValue minePosBlock(CWallet *pwallet) {
     return blockHashes;
 }
 
-//Oilcoin:new-rpc pos create:lf getPosMiningstatus
-UniValue getPosMiningstatus(){
-    UniValue ret(UniValue::VOBJ);//remove thread lock
-    ret.push_back(Pair("ismining",isMining));
-    return ret;
-}
+/**check generate posblock by myself**/
+bool CheckStake(const std::shared_ptr<const CBlock> pblock, CWallet& wallet){
+    uint256 proofHash, hashTarget;
+    uint256 hashBlock = pblock->GetHash();
 
-//Oilcoin:new-rpc pos create:lf startPosMiningThread
-UniValue startPosMiningThread(CWallet *pwallet){
-    UniValue ret(UniValue::VOBJ);//remove thread lock
-    if(isMining){
-        ret.push_back(Pair("startMing",false));
-    }else {
-        isMining = true;
-        StakePOS(isMining,pwallet);
-        ret.push_back(Pair("startMing",true));
-    }
-    return ret;
-}
+    // verify hash target and signature of coinstake tx
+    CValidationState state;
+    //posfork:pos
+    if (!CheckProofOfStake(mapBlockIndex[pblock->hashPrevBlock], state, *pblock->vtx[1], pblock->nBits, pblock->nTime, proofHash, hashTarget, *pcoinsTip))
+        return error("CheckStake() : proof-of-stake checking failed");
 
-//Oilcoin:new-rpc pos create:lf stopPosMiningThread
-UniValue stopPosMiningThread(){
-    isMining = false;//remove thread lock
-    UniValue ret(UniValue::VOBJ);
-    ret.push_back(Pair("stopMing", isMining));
-    return ret;
-}
+    //// debug print
+    LogPrintf("CheckStake() : new proof-of-stake block found  \n  hash: %s \nproofhash: %s  \ntarget: %s\n", hashBlock.GetHex(), proofHash.GetHex(), hashTarget.GetHex());
+    LogPrintf("CheckStake(), block:%s\n", pblock->ToString());
+    LogPrintf("CheckStake(), stake money out %s\n", FormatMoney(pblock->vtx[1]->GetValueOut()));
 
-//Oilcoin:new-rpc pos create:lf StakeMinerThread
-void StakeMinerThread(CWallet *pwallet){
-    SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    // Make this thread recognisable as the mining thread
-    RenameThread("Oilcoin-miner");
-	//启动线程无限循环
-    while (isMining)
+    // Found a solution
     {
-		//检查钱包锁定-》sleep
-        while (pwallet->IsLocked())
-        {
-            nLastCoinStakeSearchInterval = 0;
-            MilliSleep(10000);
+        LOCK(cs_main);
+        //check block is the latest one
+        if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash())
+            return error("CheckStake() : generated block is stale");
+
+        //check vin
+        for(const CTxIn& vin : pblock->vtx[1]->vin) {
+            if (wallet.IsSpent(vin.prevout.hash, vin.prevout.n)) {
+                return error("CheckStake() : generated block became invalid due to stake UTXO being spent");
+            }
         }
-        if(!minePosBlock(pwallet).isNull()){
-            isMining = false;//remove thread lock
-        }else {
-            MilliSleep(1000);
-        }
-        
-    }
-}
 
-void StakePOS(bool fStake, CWallet *pwallet){
-    static boost::thread_group* stakeThread = NULL;
-
-   if (stakeThread != NULL)
-    {
-        stakeThread->interrupt_all();
-       delete stakeThread;
-        stakeThread = NULL;
+        // Process this block the same as if we had received it from another node
+        bool fNewBlock = false;
+        //
+        if (!ProcessNewBlock(Params(), pblock, true, &fNewBlock))
+            return error("CheckStake() : ProcessBlock, block not accepted");
     }
 
-   if(fStake)
-    {
-       stakeThread = new boost::thread_group();
-       stakeThread->create_thread(boost::bind(&StakeMinerThread, pwallet));
-    }
+    return true;
 }

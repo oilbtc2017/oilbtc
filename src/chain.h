@@ -14,8 +14,6 @@
 
 #include <vector>
 
-static const int64_t MAX_HEIGHT_FOR_TEST = 100;
-
 /**
  * Maximum amount of time that a block timestamp is allowed to exceed the
  * current network-adjusted time before the block will be accepted.
@@ -221,14 +219,13 @@ public:
     //! (memory only) Maximum nTime in the chain upto and including this block.
     unsigned int nTimeMax;
 
-    ////Oilcoin:Gerald
+    ////posfork:Gerald
     //stake modifier
     uint256 nStakeModifier;
     //kenel hash
     uint256 hashProof;
     //prevout transaction
     COutPoint prevoutStake;
-    ////
 
     void SetNull()
     {
@@ -252,11 +249,10 @@ public:
         nBits          = 0;
         nNonce         = 0;
 
-////Oilcoin:Gerald
+////posfork:Gerald
         nStakeModifier = uint256();
         hashProof = uint256();
         prevoutStake.SetNull();
-////
     }
 
     CBlockIndex()
@@ -274,11 +270,10 @@ public:
         nBits          = block.nBits;
         nNonce         = block.nNonce;
 
-        ////Oilcoin:Gerald
+        //posfork:pos
         nStakeModifier = uint256();
         hashProof = uint256(); 
         prevoutStake.SetNull();
-        ////
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -309,7 +304,6 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
-
         return block;
     }
 
@@ -343,7 +337,8 @@ public:
         std::sort(pbegin, pend);
         return pbegin[(pend - pbegin)/2];
     }
-    ///Oilcoin:Gerald
+
+    //posfork:pos
     bool IsProofOfWork() const // qtum
     {
        return !IsProofOfStake();
@@ -353,11 +348,10 @@ public:
     {
        return !prevoutStake.IsNull();
     }
-    ///
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s, nNonce=%d)",
+        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s,nNonce=%d)",
             pprev, nHeight,
             hashMerkleRoot.ToString(),
             GetBlockHash().ToString(),
@@ -442,11 +436,10 @@ public:
         READWRITE(nBits);
         READWRITE(nNonce);
 
-        ///Oilcoin:Gerald
+        //posfork:pos
         READWRITE(nStakeModifier);
         READWRITE(hashProof);
         READWRITE(prevoutStake);
-        ////
     }
 
     uint256 GetBlockHash() const

@@ -87,10 +87,10 @@ const char* ScriptErrorString(const ScriptError serror)
             return "Witness provided for non-witness script";
         case SCRIPT_ERR_WITNESS_PUBKEYTYPE:
             return "Using non-compressed keys in segwit";
-        //Oilcoin modify two-way protect :create by lf
-        case SCRIPT_ERR_MUST_USE_FORKID:
-             return "Signature must use SIGHASH_FORKID";
         case SCRIPT_ERR_UNKNOWN_ERROR:
+        //posfork:two way protect
+        case SCRIPT_ERR_MUST_USE_FORKID:
+            return "Signature must use SIGHASH_FORKID";
         case SCRIPT_ERR_ERROR_COUNT:
         default: break;
     }

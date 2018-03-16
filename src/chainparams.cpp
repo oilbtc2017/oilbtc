@@ -100,6 +100,7 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 1479168000; // November 15th, 2016.
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1510704000; // November 15th, 2017.
 
+        //posfork:min work
         // The best chain should have at least this much work.
         //consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000723d3581fe1bd55373540a");
         consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000000000000000000000a");
@@ -115,8 +116,7 @@ public:
         pchMessageStart[1] = 0xbe;
         pchMessageStart[2] = 0xb4;
         pchMessageStart[3] = 0xd9;
-        //oilbtc:lf merage super_node
-        nDefaultPort = 8885;
+        nDefaultPort = 9995;
         nPruneAfterHeight = 100000;
 
         genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN);
@@ -127,7 +127,7 @@ public:
         // Note that of those with the service bits flag, most only support a subset of possible options
         vSeeds.emplace_back("s.oilbtc.io", false);
 
-        //Oilcoin:Gerald,change the prefix of public address to 'o' and script address to 'A'
+        //posfork:Gerald,change the prefix of public address to 'o' and script address to 'A'
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,115);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,23);
 
@@ -148,8 +148,6 @@ public:
 
         checkpointData = (CCheckpointData) {
             {
-                //oilbtc:lf merage super_node
-                //{ 100, uint256S("000000007bc154e0fa7ea32218a72fe2c1bb9f86cf8c9ebf9a715ed27fdb229a")},
                 { 11111, uint256S("0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d")},
                 { 33333, uint256S("0x000000002dd5588a74784eaa7ab0507a18ad16a236e7b1ce69f00d7ddfb5d0a6")},
                 { 74000, uint256S("0x0000000000573993a3c9e41ce34471c079dcf5f52a0e824a81e7f953b8661a20")},
@@ -162,7 +160,7 @@ public:
                 {225430, uint256S("0x00000000000001c108384350f74090433e7fcf79a606b8e797f065b130575932")},
                 {250000, uint256S("0x000000000000003887df1f29024b06fc2200b55f8af8f35453d7be294df2d214")},
                 {279000, uint256S("0x0000000000000001ae8c72a0b0c301f67e3afca10e819efa9041e458e9bd7e40")},
-                //oilbtc:lf merage super_node
+                {295000, uint256S("0x00000000000000004d9b4ef50f0f9d686fd69db2e03af35a100370c64632a983")},
                 {498888, uint256S("0x00000000000000000006cd8c4c5c0582afad218f13eb02f1351d0fa1821590d7")},
             }
         };
@@ -175,14 +173,13 @@ public:
             3.1         // * estimated number of transactions per second after that timestamp
         };
 
-        ////Oilcoin:Gerald
+        ////posfork:Gerald
         consensus.posLimit = uint256S("0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPosSubsidyHalvingInterval = 350400; //halving every  1 years
         consensus.nPosTargetTimespan = 15 * 60; // 15 minutes
         consensus.nPosTargetSpacing = 90;  //90 seconds
         consensus.fPoSNoRetargeting = false;
         consensus.nLastPOWBlock = LAST_POW_BLOCK_HEIGHT;
-        ////
     }
 };
 

@@ -1534,11 +1534,8 @@ UniValue getchaintxstats(const JSONRPCRequest& request)
 
     return ret;
 }
-
-
-
-//Oilcoin newrpc :created by lf : recentTxStatistics
-UniValue recentTxStatistics(const JSONRPCRequest& request)
+//posfork:newrpc
+UniValue recenttxstatistics(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
@@ -1619,8 +1616,6 @@ UniValue recentTxStatistics(const JSONRPCRequest& request)
     
     return listblock;
 }
-
-
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         okSafe argNames
   //  --------------------- ------------------------  -----------------------  ------ ----------
@@ -1640,13 +1635,12 @@ static const CRPCCommand commands[] =
     { "blockchain",         "getrawmempool",          &getrawmempool,          true,  {"verbose"} },
     { "blockchain",         "gettxout",               &gettxout,               true,  {"txid","n","include_mempool"} },
     { "blockchain",         "gettxoutsetinfo",        &gettxoutsetinfo,        true,  {} },
+    { "blockchain",         "pruneblockchain",        &pruneblockchain,        true,  {"height"} },
     { "blockchain",         "verifychain",            &verifychain,            true,  {"checklevel","nblocks"} },
 
     { "blockchain",         "preciousblock",          &preciousblock,          true,  {"blockhash"} },
-    //Oilcoin newrpc 
-    { "blockchain",         "recentTxStatistics",     &recentTxStatistics,     true,  {"daycount"} },
-    
-
+    //posfork:newrpc 
+    { "blockchain",         "recenttxstatistics",     &recenttxstatistics,     true,  {"daycount"} },
     /* Not shown in help */
     { "hidden",             "invalidateblock",        &invalidateblock,        true,  {"blockhash"} },
     { "hidden",             "reconsiderblock",        &reconsiderblock,        true,  {"blockhash"} },
