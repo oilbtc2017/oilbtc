@@ -26,7 +26,7 @@ enum
     SIGHASH_NONE = 2,
     SIGHASH_SINGLE = 3,
     //posfork modify two-way protect :create by lf
-    SIGHASH_FORKID = 0x56,
+    SIGHASH_FORKID = 0x10,
     SIGHASH_ANYONECANPAY = 0x80,
 };
 
